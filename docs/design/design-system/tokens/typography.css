@@ -1,0 +1,44 @@
+/* ============================================================
+   ServiceFlow — Typography tokens
+   Display: Bricolage Grotesque (bold, friendly, slightly playful
+     headings — the "travel poster" voice).
+   Sans:    Plus Jakarta Sans (clean labels + readable body).
+   Mono:    DM Mono (times, prices, confirmation codes).
+   ============================================================ */
+
+:root {
+  --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* --- Type scale (booking-poster rhythm: big, confident) --- */
+  --text-display: 4.25rem;   /* 68px — hero headline */
+  --text-h1:      3rem;      /* 48px */
+  --text-h2:      2.25rem;   /* 36px */
+  --text-h3:      1.625rem;  /* 26px */
+  --text-h4:      1.25rem;   /* 20px */
+  --text-lg:      1.125rem;  /* 18px — large input / lead */
+  --text-base:    1rem;      /* 16px — body */
+  --text-sm:      0.875rem;  /* 14px — labels */
+  --text-xs:      0.75rem;   /* 12px — badges, captions */
+
+  /* --- Weights --- */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-extra:    800;
+
+  /* --- Line heights --- */
+  --leading-tight:   1.05;  /* display */
+  --leading-snug:    1.2;   /* headings */
+  --leading-normal:  1.5;   /* body */
+  --leading-relaxed: 1.65;
+
+  /* --- Letter spacing --- */
+  --tracking-tight:  -0.03em;  /* display headlines */
+  --tracking-snug:   -0.015em; /* headings */
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;   /* eyebrows / overline labels */
+  --tracking-caps:   0.08em;   /* small caps labels */
+}

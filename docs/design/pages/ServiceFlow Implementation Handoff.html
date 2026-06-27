@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServiceFlow — Implementation Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --yellow-50:#FFF8E4;--yellow-100:#FFEEBE;--yellow-200:#FFE08C;--yellow-300:#FFD25A;
+  --yellow-400:#FFC42E;--yellow-500:#F5B000;--yellow-600:#D89800;--yellow-700:#A87400;
+  --ink-900:#1B1813;--ink-800:#262219;--ink-700:#38332A;--ink-600:#524C40;--ink-500:#6E6657;
+  --ink-400:#8C8474;--ink-300:#B3AB99;--ink-200:#D7CFBE;
+  --cream-50:#FCFAF4;--cream-100:#F8F2E6;--cream-200:#F1E8D7;--white:#FFFFFF;
+  --border-soft:#EFE7D8;--border:#E2D9C7;--border-strong:#CFC4AE;
+  --success-700:#156D45;--success-500:#1F9D63;--success-100:#E2F3EA;
+  --warning-700:#9C5E0E;--warning-500:#E08A1E;--warning-100:#FBEFD8;
+  --error-700:#9E3127;--error-500:#D9483B;--error-100:#FBE6E2;
+  --info-700:#1F5C96;--info-500:#2E7CC4;--info-100:#E2EFFA;
+  --font-display:'Bricolage Grotesque',sans-serif;
+  --font-sans:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream-50);color:var(--ink-700);
+  font-family:var(--font-sans);font-size:15px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;}
+.doc{box-sizing:border-box;max-width:8.5in;margin:0 auto;background:var(--cream-50);
+  padding:56px clamp(24px,5vw,0.85in) 96px;}
+.doc-frame{width:100%;border-collapse:collapse;}
+.doc-frame td{padding:0;}
+.hdr-space,.ftr-space{display:none;}
+
+/* ---- type ---- */
+h1,h2,h3,h4{font-family:var(--font-display);color:var(--ink-900);text-wrap:balance;
+  letter-spacing:-0.02em;margin:0;}
+p,li{text-wrap:pretty;}
+.doc>.doc-frame h1.doctitle{font-size:46px;font-weight:800;line-height:1.04;letter-spacing:-0.03em;margin:0 0 6px;}
+h2{font-size:27px;font-weight:800;line-height:1.12;margin:60px 0 6px;padding-top:22px;border-top:2px solid var(--ink-900);}
+h3{font-size:19px;font-weight:700;margin:30px 0 8px;color:var(--ink-800);}
+h4{font-size:15.5px;font-weight:700;margin:18px 0 5px;color:var(--ink-800);}
+p{margin:9px 0;color:var(--ink-600);}
+strong,b{color:var(--ink-800);font-weight:700;}
+a{color:var(--ink-900);text-decoration:underline;text-decoration-color:var(--yellow-500);text-underline-offset:2px;}
+em{font-style:italic;color:var(--ink-700);}
+code,.mono{font-family:var(--font-mono);font-size:0.86em;background:var(--cream-200);
+  color:var(--ink-800);padding:1.5px 6px;border-radius:6px;}
+
+/* ---- masthead ---- */
+.masthead{display:flex;align-items:center;gap:14px;margin:0 0 4px;}
+.logotile{width:46px;height:46px;border-radius:13px;background:var(--yellow-400);
+  display:grid;place-items:center;flex:none;box-shadow:0 6px 16px rgba(245,176,0,0.30);}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--yellow-700);}
+.lede{font-size:16.5px;color:var(--ink-600);max-width:62ch;margin:14px 0 2px;line-height:1.55;}
+.metabar{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px;}
+.metabar .pill{font-size:12px;font-weight:600;color:var(--ink-700);background:var(--white);
+  border:1.5px solid var(--border);border-radius:999px;padding:5px 13px;}
+.metabar .pill.warn{background:var(--warning-100);border-color:#EAD3A6;color:var(--warning-700);}
+
+/* eyebrow-label inside body */
+.kicker{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--yellow-700);display:block;margin-top:4px;}
+
+/* ---- callout / cards ---- */
+.note{border:1.5px solid var(--border);background:var(--white);border-radius:16px;
+  padding:16px 20px;margin:18px 0;box-shadow:0 2px 8px rgba(43,36,20,0.05);}
+.note.flag{background:var(--warning-100);border-color:#EAD3A6;}
+.note.info{background:var(--info-100);border-color:#BFD9F0;}
+.note.ok{background:var(--success-100);border-color:#B7E0C8;}
+.note h4{margin-top:0;display:flex;align-items:center;gap:8px;}
+.note p:last-child{margin-bottom:0;}
+.note .tag{font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;}
+
+/* ---- tables ---- */
+table.grid{width:100%;border-collapse:separate;border-spacing:0;margin:18px 0;
+  font-size:13.5px;background:var(--white);border:1.5px solid var(--border);
+  border-radius:14px;overflow:hidden;}
+table.grid th{background:var(--cream-100);text-align:left;font-family:var(--font-sans);
+  font-weight:700;color:var(--ink-800);font-size:11.5px;letter-spacing:0.04em;
+  text-transform:uppercase;padding:11px 13px;border-bottom:1.5px solid var(--border);}
+table.grid td{padding:11px 13px;border-bottom:1px solid var(--border-soft);
+  color:var(--ink-600);vertical-align:top;line-height:1.45;}
+table.grid tr:last-child td{border-bottom:none;}
+table.grid td .mono{font-size:12px;}
+.src{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;}
+.src.ds{background:var(--yellow-100);color:var(--yellow-700);}
+.src.proj{background:var(--info-100);color:var(--info-700);}
+.src.both{background:var(--cream-200);color:var(--ink-600);}
+.fin{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;}
+.fin.yes{background:var(--success-100);color:var(--success-700);}
+.fin.soon{background:var(--warning-100);color:var(--warning-700);}
+
+/* ---- lists ---- */
+ul,ol{margin:9px 0;padding-left:22px;}
+li{margin:5px 0;color:var(--ink-600);}
+li::marker{color:var(--yellow-600);}
+ul.tight li{margin:2.5px 0;}
+.lbl{font-weight:700;color:var(--ink-800);}
+
+/* state spec list */
+.states{list-style:none;padding:0;margin:10px 0;}
+.states>li{display:flex;gap:0;flex-wrap:wrap;align-items:baseline;padding:7px 0;
+  border-bottom:1px dashed var(--border);margin:0;}
+.states>li:last-child{border-bottom:none;}
+.states .st{flex:none;width:118px;font-size:11px;font-weight:800;letter-spacing:0.05em;
+  text-transform:uppercase;color:var(--ink-500);padding-top:1px;}
+.states .sv{flex:1;min-width:240px;color:var(--ink-600);}
+.states .sv code{font-size:0.82em;}
+
+/* screen block */
+.screen{border:1.5px solid var(--border);border-radius:18px;background:var(--white);
+  padding:6px 22px 20px;margin:22px 0;box-shadow:0 2px 10px rgba(43,36,20,0.05);}
+.screen>h3{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.screen>h3 .route{font-family:var(--font-mono);font-size:12px;font-weight:500;
+  background:var(--cream-100);color:var(--ink-700);padding:3px 10px;border-radius:8px;border:1px solid var(--border-soft);}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px 26px;}
+@media(max-width:680px){.two{grid-template-columns:1fr;}}
+
+.swatchrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.sw{border:1.5px solid var(--border-soft);border-radius:12px;overflow:hidden;width:104px;background:var(--white);}
+.sw .chip{height:42px;}
+.sw .meta{padding:6px 8px;}
+.sw .nm{font-size:11px;font-weight:700;color:var(--ink-800);}
+.sw .hex{font-family:var(--font-mono);font-size:10px;color:var(--ink-400);}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 2px;font-size:12px;color:var(--ink-500);}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.toc{columns:2;column-gap:34px;margin:22px 0 8px;font-size:14px;}
+@media(max-width:680px){.toc{columns:1;}}
+.toc a{display:block;padding:4px 0;color:var(--ink-700);text-decoration:none;border-bottom:1px solid var(--border-soft);}
+.toc a:hover{color:var(--ink-900);}
+.toc .n{font-family:var(--font-mono);color:var(--yellow-600);font-weight:600;margin-right:9px;}
+
+/* toolbar */
+.toolbar{position:sticky;top:0;z-index:20;display:flex;justify-content:flex-end;gap:10px;
+  padding:12px clamp(16px,4vw,40px);background:rgba(252,250,244,0.86);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border-soft);}
+.btn{font-family:var(--font-sans);font-size:13px;font-weight:700;border-radius:999px;
+  padding:9px 18px;border:1.5px solid var(--ink-900);background:var(--yellow-400);color:var(--ink-900);
+  cursor:pointer;box-shadow:0 6px 16px rgba(245,176,0,0.28);}
+.btn.ghost{background:transparent;box-shadow:none;}
+.btn:active{transform:translateY(1px) scale(0.99);}
+
+@page{size:letter;margin:0;}
+@media print{
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{margin:0;padding:0;background:#fff;}
+  .doc{max-width:none!important;margin:0!important;padding:0 0.7in!important;box-shadow:none!important;background:#fff;}
+  .hdr-space,.ftr-space{display:table-cell;height:0.7in;}
+  h2,h3,h4{break-after:avoid;}
+  .note,.screen,table.grid,figure,.sw{break-inside:avoid;}
+  p,li{orphans:3;widows:3;}
+  .screen-only{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar screen-only">
+  <button class="btn ghost" onclick="window.scrollTo({top:0,behavior:'smooth'})">Top</button>
+  <button class="btn" onclick="window.print()">Save as PDF</button>
+</div>
+
+<main class="doc">
+<table class="doc-frame" role="presentation">
+<thead><tr><td class="hdr-space"></td></tr></thead>
+<tbody><tr><td>
+
+<div class="masthead">
+  <span class="logotile" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="#1B1813">
+      <path d="M12 6.5A5.5 5.5 0 1 0 12 17.5 5.5 5.5 0 0 0 12 6.5ZM12 1l1.4 2.7L16 2.3l-.3 3 3 .3-1.4 2.6 2.4 1.8-2.4 1.8 1.4 2.6-3 .3.3 3-2.6-1.4L12 23l-1.4-2.7L8 21.7l.3-3-3-.3 1.4-2.6L4.3 12l2.4-1.8L5.3 7.6l3-.3-.3-3 2.6 1.4L12 1Z"/>
+    </svg>
+  </span>
+  <div>
+    <span class="eyebrow">ServiceFlow · Implementation handoff</span>
+    <div style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--ink-900);letter-spacing:-0.01em;">Frontend build — source of truth</div>
+  </div>
+</div>
+
+<h1 class="doctitle">Build ServiceFlow as a portfolio app.</h1>
+<p class="lede">A single source-of-truth spec for implementing the ServiceFlow booking platform as a <strong>frontend-only</strong> portfolio project in <strong>React / Next.js (App Router) + TypeScript + Tailwind</strong>. It reconciles the design system, the Booking App UI kit, and the project screens into one final inventory, then defines routes, tokens, components, interactions, and exactly what ships in the first demo.</p>
+
+<div class="metabar">
+  <span class="pill">Next.js App Router</span>
+  <span class="pill">TypeScript</span>
+  <span class="pill">Tailwind CSS</span>
+  <span class="pill">Frontend-only · mock data</span>
+  <span class="pill warn">No backend · no real payments</span>
+</div>
+
+<div class="note info">
+  <h4><span class="tag">Read-only</span> &nbsp;How to use this document</h4>
+  <p>This is documentation only. It <strong>references</strong> the existing design system and screens but changes none of them — treat the design system, the Booking App kit, and the project screens as frozen inputs. When a control looks clickable, this doc says what it should do; anything not in MVP scope is marked <span class="fin soon">Coming soon</span> or disabled rather than left ambiguous.</p>
+</div>
+
+<nav class="toc">
+  <a href="#inventory"><span class="n">1</span>Final screen inventory</a>
+  <a href="#routes"><span class="n">2</span>Route map</a>
+  <a href="#tokens"><span class="n">3</span>Design tokens for implementation</a>
+  <a href="#components"><span class="n">4</span>Component inventory</a>
+  <a href="#interactions"><span class="n">5</span>Interaction specification</a>
+  <a href="#mvp"><span class="n">6</span>MVP scope</a>
+  <a href="#postponed"><span class="n">7</span>Postponed / Coming soon</a>
+</nav>
+
+<!-- ============ 1. SCREEN INVENTORY ============ -->
+<h2 id="inventory">1 · Final screen inventory</h2>
+<p>ServiceFlow splits into two surfaces: a <strong>customer booking flow</strong> (search → choose → select time → confirm) and a <strong>business owner console</strong> (dashboard, bookings, availability). The customer flow lives in the design system's <em>Booking App</em> kit; the deeper, production-ready versions of two of those steps — plus the entire business console — live in the project screens.</p>
+
+<div class="legend">
+  <span><span class="src ds">Design System / Booking App</span> ships this screen</span>
+  <span><span class="src proj">Project screen</span> is the richer build</span>
+  <span><span class="fin yes">MVP</span></span>
+  <span><span class="fin soon">Coming soon</span></span>
+</div>
+
+<table class="grid">
+  <thead><tr><th style="width:23%">Final screen</th><th style="width:14%">Source</th><th>Notes &amp; final recommendation</th><th style="width:13%">MVP</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Home / Search</strong></td>
+      <td><span class="src ds">Booking App</span></td>
+      <td>From <code>HomeSearch.jsx</code>. Hero + signature SearchField booking bar, category tiles, trust band. Only source — no project duplicate. <strong>Final: Booking App.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Search Results</strong></td>
+      <td><span class="src ds">Booking App</span></td>
+      <td>From <code>ResultsPage.jsx</code>. Filter rail + sorted result cards + empty state. Only source. <strong>Final: Booking App.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Service Details &amp; Booking</strong></td>
+      <td><span class="src both">Both</span></td>
+      <td><span class="lbl">Conflict.</span> Booking App's <em>SelectTime</em> step and the project's <code>ServiceDetailsPage</code> cover the same screen. The project version is far richer — provider header, what's-included, DatePicker with live loading, AM/PM slot grids, customer-detail form with validation, sticky boarding-pass summary, confirm modal, toasts. <strong>Final: Project version.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Booking Confirmation</strong></td>
+      <td><span class="src both">Both</span></td>
+      <td><span class="lbl">Conflict.</span> Booking App's <em>Done</em> screen vs the project's <code>ConfirmationPage</code> (hero status, details card, "what happens next" steps, manage/help, confirmed + pending states). <strong>Final: Project version.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Business Dashboard</strong></td>
+      <td><span class="src proj">Project</span></td>
+      <td>From <code>DashboardPage.jsx</code>. Greeting, stat cards, today's bookings, upcoming, availability nudge, activity. Active + new-business (empty) states. <strong>Final: Project version.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Bookings Management</strong></td>
+      <td><span class="src proj">Project</span></td>
+      <td>From <code>BookingsPage.jsx</code>. Filter bar, status tabs, data table, detail drawer with timeline + status actions. Data/loading/empty/error previews. <strong>Final: Project version.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+    <tr>
+      <td><strong>Availability Management</strong></td>
+      <td><span class="src proj">Project</span></td>
+      <td>From <code>AvailabilityPage.jsx</code>. Weekly board, add/edit-slot modal, rules panel, overlap warning. Schedule/loading/error previews. <strong>Final: Project version.</strong></td>
+      <td><span class="fin yes">MVP</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Duplicates &amp; conflicts — how to resolve</h3>
+<ul>
+  <li><span class="lbl">Service details &amp; Confirmation appear twice.</span> The Booking App kit is a cosmetic click-through; the project screens are the production build with real states. <strong>Treat the project versions as final</strong> for these two and retire the kit's inline copies.</li>
+  <li><span class="lbl">Locale / currency conflict (important).</span> The customer flow is set in <strong>Brooklyn, NY with USD</strong> (e.g. Deep Home Clean, <span class="mono">$130</span>); the business console is set in <strong>Dublin, IE with EUR</strong> (Dublin Laptop Care, <span class="mono">€140</span>). For a coherent demo, pick <em>one</em> locale and currency and apply it across both surfaces, or frame them as two seeded accounts. Recommendation: standardize on one (e.g. Brooklyn / USD) and drive currency from a single config constant.</li>
+  <li><span class="lbl">Provider identity differs by surface.</span> Customer side = "Tidy &amp; Co." cleaning; business side = "Dublin Laptop Care" repairs. Fine as separate seed personas, but the demo reads cleaner if the confirmed customer booking and a business booking reference the same service vocabulary.</li>
+</ul>
+
+<div class="note">
+  <h4>Not in scope to build now</h4>
+  <p>Auth/login, provider onboarding ("List your service"), Favorites, Messaging, Calendar (month) view, Services catalog editor, and real payments are <strong>referenced by navigation but have no designed screen</strong>. They stay as <span class="fin soon">Coming soon</span> destinations — see §7.</p>
+</div>
+
+<!-- ============ 2. ROUTE MAP ============ -->
+<h2 id="routes">2 · Route map (Next.js App Router)</h2>
+<p>Two route groups keep the customer and business surfaces cleanly separated while sharing one design system. Use a <code>(customer)</code> and a <code>(business)</code> group so each can own its layout (customer TopNav vs business TopNav with avatar). Dynamic segments use mock IDs from seed data.</p>
+
+<table class="grid">
+  <thead><tr><th style="width:34%">Route</th><th style="width:24%">Screen</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">/</td><td>Home / Search</td><td>Landing + booking bar. Submitting search pushes to <span class="mono">/search</span>.</td></tr>
+    <tr><td class="mono">/search</td><td>Search Results</td><td>Filters held in URL query (<span class="mono">?cat=&amp;max=&amp;rating=&amp;avail=&amp;sort=</span>) so results are shareable.</td></tr>
+    <tr><td class="mono">/services/[serviceId]</td><td>Service Details &amp; Booking</td><td>Project screen. <span class="mono">serviceId</span> e.g. <span class="mono">deep-home-clean</span>.</td></tr>
+    <tr><td class="mono">/booking/[ref]/confirmation</td><td>Booking Confirmation</td><td>Project screen. <span class="mono">ref</span> e.g. <span class="mono">SF-7A2K9</span>. Status (confirmed / pending) from mock booking.</td></tr>
+    <tr><td class="mono">/dashboard</td><td>Business Dashboard</td><td>Business group home. Active / new-business modes from a seed flag.</td></tr>
+    <tr><td class="mono">/dashboard/bookings</td><td>Bookings Management</td><td>Table + drawer. Open booking can deep-link via <span class="mono">?ref=SF-7A2K9</span>.</td></tr>
+    <tr><td class="mono">/dashboard/availability</td><td>Availability Management</td><td>Weekly board. Week via <span class="mono">?week=</span> offset.</td></tr>
+  </tbody>
+</table>
+
+<h4>Coming-soon routes (render a friendly placeholder, see §7)</h4>
+<ul class="tight">
+  <li><code>/bookings</code>, <code>/favorites</code> — customer nav targets</li>
+  <li><code>/list-your-service</code> — provider onboarding CTA</li>
+  <li><code>/dashboard/calendar</code>, <code>/dashboard/services</code> — business nav targets</li>
+  <li><code>/login</code> — not designed; gate nothing in MVP</li>
+</ul>
+
+<div class="note info">
+  <h4><span class="tag">Tip</span> &nbsp;App Router structure</h4>
+  <p><span class="mono">app/(customer)/layout.tsx</span> wraps Home, Search, Service, Confirmation with the customer <code>TopNav</code>. <span class="mono">app/(business)/dashboard/layout.tsx</span> wraps the three console routes with the business <code>TopNav</code> (avatar + business links). Mock data lives in <span class="mono">lib/mock/</span> and is imported directly — no fetching.</p>
+</div>
+
+<!-- ============ 3. TOKENS ============ -->
+<h2 id="tokens">3 · Design tokens for implementation</h2>
+<p>Every value below is already a CSS custom property in the design system's <code>tokens/</code> files. Wire them into <code>tailwind.config.ts</code> as <code>var(--*)</code> references (the design system README ships the exact mapping). Build against tokens and DS classes — never hardcode hexes in components.</p>
+
+<h3>Colors</h3>
+<p>A warm triad — sunny <strong>yellow</strong> (the sun / primary action), warm <strong>charcoal ink</strong> (type + secondary), airy <strong>cream</strong> surfaces. <strong>No cold greys.</strong> Blue is an <em>info</em> accent only (reminders) — never a primary button. Primary buttons are always yellow fill with charcoal text.</p>
+
+<div class="swatchrow">
+  <div class="sw"><div class="chip" style="background:#FFC42E"></div><div class="meta"><div class="nm">yellow-400</div><div class="hex">#FFC42E · primary</div></div></div>
+  <div class="sw"><div class="chip" style="background:#F5B000"></div><div class="meta"><div class="nm">yellow-500</div><div class="hex">#F5B000 · CTA</div></div></div>
+  <div class="sw"><div class="chip" style="background:#262219"></div><div class="meta"><div class="nm">ink-800</div><div class="hex">#262219 · heading</div></div></div>
+  <div class="sw"><div class="chip" style="background:#524C40"></div><div class="meta"><div class="nm">ink-600</div><div class="hex">#524C40 · body</div></div></div>
+  <div class="sw"><div class="chip" style="background:#FCFAF4;border-bottom:1px solid #E2D9C7"></div><div class="meta"><div class="nm">cream-50</div><div class="hex">#FCFAF4 · page</div></div></div>
+  <div class="sw"><div class="chip" style="background:#F8F2E6"></div><div class="meta"><div class="nm">cream-100</div><div class="hex">#F8F2E6 · warm</div></div></div>
+  <div class="sw"><div class="chip" style="background:#FFFFFF;border-bottom:1px solid #E2D9C7"></div><div class="meta"><div class="nm">white</div><div class="hex">#FFFFFF · panel</div></div></div>
+  <div class="sw"><div class="chip" style="background:#EFE7D8"></div><div class="meta"><div class="nm">border-soft</div><div class="hex">#EFE7D8 · hairline</div></div></div>
+</div>
+<div class="swatchrow">
+  <div class="sw"><div class="chip" style="background:#1F9D63"></div><div class="meta"><div class="nm">success-500</div><div class="hex">#1F9D63</div></div></div>
+  <div class="sw"><div class="chip" style="background:#E08A1E"></div><div class="meta"><div class="nm">warning-500</div><div class="hex">#E08A1E</div></div></div>
+  <div class="sw"><div class="chip" style="background:#D9483B"></div><div class="meta"><div class="nm">error-500</div><div class="hex">#D9483B</div></div></div>
+  <div class="sw"><div class="chip" style="background:#2E7CC4"></div><div class="meta"><div class="nm">info-500</div><div class="hex">#2E7CC4 · accent only</div></div></div>
+</div>
+<ul class="tight">
+  <li>Semantic colors each ship a soft tint + solid pair (e.g. <code>--success-100</code> fill, <code>--success-500</code> solid, <code>--success-700</code> text) — used by Badge, Toast, status rails.</li>
+  <li>Text roles: heading <code>--ink-800</code>, body <code>--ink-600</code>, muted <code>--ink-400</code>, disabled <code>--ink-300</code>, on-accent (text on yellow) <code>--ink-900</code>.</li>
+  <li>Focus ring: <code>--focus-ring</code> = <span class="mono">rgba(245,176,0,0.35)</span>, applied as a 4px soft glow + yellow-500 border on focus.</li>
+</ul>
+
+<h3>Typography</h3>
+<ul class="tight">
+  <li><span class="lbl">Display / headings</span> — <strong>Bricolage Grotesque</strong> 700/800, tight tracking (−3% on big sizes). The "travel-poster" voice.</li>
+  <li><span class="lbl">Body / labels / lead</span> — <strong>Plus Jakarta Sans</strong> 400–700.</li>
+  <li><span class="lbl">Mono</span> — <strong>DM Mono</strong> for times, prices, and confirmation codes (ticket-stub feel).</li>
+</ul>
+<table class="grid">
+  <thead><tr><th>Token</th><th>Size</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">--text-display</td><td>68px</td><td>Hero headline</td></tr>
+    <tr><td class="mono">--text-h1</td><td>48px</td><td>Page title</td></tr>
+    <tr><td class="mono">--text-h2</td><td>36px</td><td>Section title</td></tr>
+    <tr><td class="mono">--text-h3</td><td>26px</td><td>Sub-section</td></tr>
+    <tr><td class="mono">--text-h4</td><td>20px</td><td>Card heading</td></tr>
+    <tr><td class="mono">--text-lg</td><td>18px</td><td>Lead / large input</td></tr>
+    <tr><td class="mono">--text-base</td><td>16px</td><td>Body</td></tr>
+    <tr><td class="mono">--text-sm</td><td>14px</td><td>Labels (UI minimum)</td></tr>
+    <tr><td class="mono">--text-xs</td><td>12px</td><td>Badges, captions</td></tr>
+  </tbody>
+</table>
+<p>Casing: sentence case everywhere. Uppercase only for wide-tracked eyebrow/overline labels (<code>--tracking-wide</code> 0.04em). No emoji in product copy.</p>
+
+<h3>Spacing</h3>
+<p>4px base, generous steps: <code>1</code>=4 · <code>2</code>=8 · <code>3</code>=12 · <code>4</code>=16 · <code>5</code>=24 · <code>6</code>=32 · <code>7</code>=40 · <code>8</code>=48 · <code>9</code>=64 · <code>10</code>=80 · <code>12</code>=112px. Content max-width <code>--container</code> = 1200px (narrow column <code>--container-sm</code> = 760px); default gutter 32px.</p>
+
+<h3>Border radius</h3>
+<table class="grid">
+  <thead><tr><th>Token</th><th>Value</th><th>Applied to</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">--radius-sm</td><td>8px</td><td>Small inner chips</td></tr>
+    <tr><td class="mono">--radius-md</td><td>14px</td><td>Inputs, badges</td></tr>
+    <tr><td class="mono">--radius-lg</td><td>20px</td><td>Cards</td></tr>
+    <tr><td class="mono">--radius-xl</td><td>28px</td><td>Booking panels</td></tr>
+    <tr><td class="mono">--radius-2xl</td><td>40px</td><td>Hero panels</td></tr>
+    <tr><td class="mono">--radius-pill</td><td>999px</td><td>Buttons, time slots, chips, badges</td></tr>
+  </tbody>
+</table>
+<p>Rounding is the most identity-defining move. <strong>All actions, time slots, and chips are full pills.</strong></p>
+
+<h3>Shadows</h3>
+<p>Soft, diffuse, <strong>warm-tinted</strong> (brown-black <span class="mono">rgba(43,36,20,…)</span>) — never hard black. A special yellow glow sits under primary CTAs and selected slots.</p>
+<ul class="tight">
+  <li><code>--shadow-sm</code> — cards at rest · <code>--shadow-md</code> — raised panels</li>
+  <li><code>--shadow-lg</code> — card hover (pair with a −4px lift) · <code>--shadow-xl</code> — modals</li>
+  <li><code>--shadow-accent</code> = <span class="mono">0 10px 28px rgba(245,176,0,0.32)</span> — the yellow CTA glow</li>
+</ul>
+
+<h3>Button styles</h3>
+<p><code>Button</code> ships four variants × three sizes; pill-shaped, touch-friendly.</p>
+<ul class="tight">
+  <li><span class="lbl">primary</span> — yellow-400 fill, <strong>charcoal (ink-900) text</strong>, accent glow. Hover darkens 500→600; press nudges down + scales ~0.985.</li>
+  <li><span class="lbl">secondary</span> — solid charcoal fill, cream text.</li>
+  <li><span class="lbl">outline</span> — transparent, warm border; border darkens to ink on hover.</li>
+  <li><span class="lbl">ghost</span> — no border; fill warms to cream on hover.</li>
+  <li>Sizes: <span class="lbl">sm</span> 40px · <span class="lbl">md</span> 52px · <span class="lbl">lg</span> 62px. Props: <code>full</code>, <code>leadingIcon</code>, <code>trailingIcon</code>, <code>disabled</code>.</li>
+  <li><strong>Never</strong> white-on-yellow or a blue primary.</li>
+</ul>
+
+<h3>Card styles</h3>
+<ul class="tight">
+  <li><span class="lbl">Base card</span> — white fill, soft warm hairline (<code>--border-soft</code>), <code>shadow-sm</code> at rest, <code>shadow-lg</code> + −4px lift on hover, radius-lg.</li>
+  <li><span class="lbl">ServiceCard</span> — photo-led; big rounded image (warm yellow gradient fallback) with category pill + duration chip overlaid; rating star is the one filled glyph (yellow-500).</li>
+  <li><span class="lbl">BookingCard</span> — boarding-pass: yellow date block + dashed tear line.</li>
+  <li>Avoid the SaaS "rounded box with a colored left-border accent" trope. The only left rails used are the Toast's semantic rail and the BookingCard's yellow date panel.</li>
+</ul>
+
+<h3>Form styles</h3>
+<ul class="tight">
+  <li>Inputs ≥ 56px tall (lg up to 66px); radius-md (14px); warm <code>--border-input</code> hairline.</li>
+  <li><span class="lbl">Focus</span> — border swaps to yellow-500 + 4px soft-yellow glow ring.</li>
+  <li><span class="lbl">Error</span> — error-500 border + helper text below; Input takes an <code>error</code> prop.</li>
+  <li><span class="lbl">Disabled</span> — muted, no shadow, not focusable.</li>
+  <li>Components: <code>Input</code> (with optional leading icon), <code>Select</code> (custom chevron), <code>SearchField</code> (signature booking bar), <code>DatePicker</code> (day strip), <code>TimeSlot</code> (available / selected / unavailable). Touch targets never below 44px.</li>
+</ul>
+
+<!-- ============ 4. COMPONENT INVENTORY ============ -->
+<h2 id="components">4 · Component inventory</h2>
+<p>Reuse the design-system components first; build screen-specific composites only where noted. The DS bundle exports everything in the first two groups today.</p>
+
+<h3>Base UI components <span class="kicker">design system — reuse as-is</span></h3>
+<table class="grid">
+  <thead><tr><th style="width:26%">Component</th><th>Key props / variants</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Button</strong></td><td><code>variant</code> primary·secondary·outline·ghost · <code>size</code> sm·md·lg · <code>full</code> · leading/trailingIcon · <code>disabled</code></td></tr>
+    <tr><td><strong>Input</strong></td><td><code>label</code> · <code>icon</code> · <code>size</code> · <code>value</code>/<code>onChange</code> · <code>error</code> · placeholder</td></tr>
+    <tr><td><strong>Select</strong></td><td><code>options</code> (string[] or {label,value}[]) · <code>value</code>/<code>onChange</code> · <code>label</code> · <code>size</code></td></tr>
+    <tr><td><strong>SearchField</strong></td><td>Signature booking bar (magnifier inline)</td></tr>
+    <tr><td><strong>DatePicker</strong></td><td><code>days</code> [{weekday,date,hint,state}] · <code>value</code>/<code>onChange</code></td></tr>
+    <tr><td><strong>TimeSlot</strong></td><td><code>time</code> · <code>meta</code> ("2 left") · <code>state</code> available·selected·unavailable · <code>onClick</code></td></tr>
+    <tr><td><strong>Badge</strong></td><td><code>tone</code> neutral·accent·success·warning·error·info · <code>dot</code></td></tr>
+    <tr><td><strong>EmptyState</strong></td><td><code>icon</code> · <code>title</code> · <code>description</code> · <code>actionLabel</code>/<code>onAction</code> (dashed border, icon halo)</td></tr>
+    <tr><td><strong>Modal</strong></td><td><code>open</code>/<code>onClose</code> · <code>eyebrow</code> · <code>title</code> · <code>width</code> · <code>footer</code> (charcoal scrim + blur, spring in)</td></tr>
+    <tr><td><strong>Toast</strong></td><td><code>tone</code> · <code>title</code> · <code>message</code> · <code>onClose</code> (semantic left rail, auto-dismiss)</td></tr>
+    <tr><td><strong>TopNav</strong></td><td><code>location</code> · <code>links</code> · <code>activeLink</code> · <code>ctaLabel</code>/<code>onCta</code> · <code>avatar</code> (translucent + blur)</td></tr>
+    <tr><td><strong>Tabs</strong></td><td><code>tabs</code> [{label,value,count}] · <code>value</code>/<code>onChange</code></td></tr>
+    <tr><td><strong>DataTable</strong></td><td>Generic table primitive (Bookings table is a screen-specific composite over it)</td></tr>
+  </tbody>
+</table>
+
+<h3>Customer booking components <span class="kicker">booking app + composites</span></h3>
+<ul class="tight">
+  <li><span class="lbl">ServiceCard</span> (DS) — grid card on Results; photo-led with rating, price, next-available slots.</li>
+  <li><span class="lbl">ResultCard</span> (composite, from <code>ResultsPage</code>) — horizontal result row with recommended flag, mini slot row, "View availability" CTA.</li>
+  <li><span class="lbl">FilterRail</span> (composite) — category checkboxes, price slider, rating + availability pill groups, clear-all.</li>
+  <li><span class="lbl">BookingSummary</span> (composite, Service Details) — sticky boarding-pass panel: provider, date, time, location, total, confirm CTA, held-slot note.</li>
+  <li><span class="lbl">CustomerDetailsForm</span> (composite) — name / contact / note with inline validation.</li>
+  <li><span class="lbl">CategoryTile</span> (composite, Home) — icon tile with provider count.</li>
+  <li><span class="lbl">ConfirmationHero / NextSteps</span> (composites) — status halo, details card, numbered steps, manage-help grid.</li>
+</ul>
+
+<h3>Business dashboard components <span class="kicker">project composites</span></h3>
+<ul class="tight">
+  <li><span class="lbl">StatCard</span> — metric tile (icon tint, number, label, optional delta); one "feature" variant.</li>
+  <li><span class="lbl">TodayBookingRow</span> — time + status rail + avatar + customer/service + quick Confirm / View actions.</li>
+  <li><span class="lbl">BookingCard</span> (DS) — boarding-pass card for Upcoming.</li>
+  <li><span class="lbl">BookingsTable + BookingDrawer</span> — sortable rows with contextual status action; slide-in drawer with contact, service box, customer note, timeline, status-aware footer actions.</li>
+  <li><span class="lbl">FilterBar</span> — search input + service/date selects + clear.</li>
+  <li><span class="lbl">AvailabilityBoard + DayColumn + Slot</span> — weekly grid; slot states booked·available·blocked·unavailable, capacity bar, overlap flag.</li>
+  <li><span class="lbl">SlotModal</span> — add/edit slot form (service, date, start/end, capacity stepper, repeat, buffer note).</li>
+  <li><span class="lbl">RulesPanel · AvailabilityNudge · ActivityFeed</span> — supporting console panels.</li>
+</ul>
+
+<h3>Layout &amp; navigation components</h3>
+<ul class="tight">
+  <li><span class="lbl">CustomerTopNav</span> — TopNav with Explore / Bookings / Favorites + "List your service" CTA.</li>
+  <li><span class="lbl">BusinessTopNav</span> — TopNav with Dashboard / Bookings / Calendar / Services + avatar + "Add availability" CTA.</li>
+  <li><span class="lbl">PageHeader</span> — crumb + title + subtitle + right-aligned actions (console pages).</li>
+  <li><span class="lbl">Container</span> — 1200px max-width wrapper. <span class="lbl">ToastHost</span> — fixed toast stack. <span class="lbl">Scrim</span> — shared modal/drawer backdrop.</li>
+</ul>
+
+<!-- ============ 5. INTERACTION SPEC ============ -->
+<h2 id="interactions">5 · Interaction specification</h2>
+<p>Per screen: clickable elements and expected behaviour, plus the state matrix (loading / empty / error / disabled) the build must handle. States already present in the project screens are noted as <em>designed</em>; the rest follow the design system's empty/error patterns. Anything outside MVP is marked <span class="fin soon">Coming soon</span> — disable it, don't hide it.</p>
+
+<!-- HOME -->
+<div class="screen">
+  <h3>Home / Search <span class="route">/</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">Service select + location input + date strip</span> → build the search query.</li>
+    <li><span class="lbl">"Find services" (primary)</span> → navigate to <span class="mono">/search</span> with the chosen filters in the query string.</li>
+    <li><span class="lbl">Category tiles</span> → <span class="mono">/search?cat=…</span>.</li>
+    <li><span class="lbl">TopNav links</span> Explore (active) · Bookings/Favorites <span class="fin soon">Coming soon</span>.</li>
+    <li><span class="lbl">"List your service" CTA</span> → <span class="fin soon">Coming soon</span>.</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv">Controlled inputs update local search state; DatePicker highlights the selected day.</span></li>
+    <li><span class="st">Loading</span><span class="sv">Static page — none needed on load.</span></li>
+    <li><span class="st">Empty</span><span class="sv">N/A (categories are fixed seed data).</span></li>
+    <li><span class="st">Error</span><span class="sv">N/A in MVP.</span></li>
+    <li><span class="st">Disabled</span><span class="sv">"Find services" stays enabled (location pre-filled); disable only if location is cleared.</span></li>
+  </ul>
+</div>
+
+<!-- RESULTS -->
+<div class="screen">
+  <h3>Search Results <span class="route">/search</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">Category checkboxes</span> → toggle filter; results recompute live.</li>
+    <li><span class="lbl">Price slider</span> → cap max price live. <span class="lbl">Rating &amp; Availability pills</span> → single-select filter.</li>
+    <li><span class="lbl">Clear (n)</span> → reset all filters (shown only when filters are active).</li>
+    <li><span class="lbl">Sort select</span> → Recommended / Price low→high / Top rated.</li>
+    <li><span class="lbl">Result card "View availability"</span> → <span class="mono">/services/[serviceId]</span>.</li>
+    <li><span class="lbl">"Edit search"</span> → back to Home (or reopens the search bar).</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv">Filters/sort drive the visible list and the "<em>N</em> services available" count; sync to URL query.</span></li>
+    <li><span class="st">Loading</span><span class="sv">Skeleton result cards while results resolve (MVP: instant from mock; keep a brief skeleton for realism).</span></li>
+    <li><span class="st">Empty</span><span class="sv"><em>Designed</em> — <code>EmptyState</code> "No services match those filters" + "Clear all filters" action.</span></li>
+    <li><span class="st">Error</span><span class="sv">Reuse the console error pattern (icon + retry) if a future fetch fails; N/A for mock.</span></li>
+    <li><span class="st">Disabled</span><span class="sv">"Clear" hidden when no filter is active.</span></li>
+  </ul>
+</div>
+
+<!-- SERVICE DETAILS -->
+<div class="screen">
+  <h3>Service Details &amp; Booking <span class="route">/services/[serviceId]</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">Breadcrumb / "Back to results"</span> → <span class="mono">/search</span>.</li>
+    <li><span class="lbl">DatePicker day</span> → selects day, clears chosen slot, triggers a short slot reload.</li>
+    <li><span class="lbl">TimeSlot</span> → selects time (unavailable slots not clickable); updates the summary panel + total label.</li>
+    <li><span class="lbl">"See next available"</span> (fully-booked day) → jumps to the next day with openings.</li>
+    <li><span class="lbl">Name / contact / note inputs</span> → controlled; clearing a field's value clears its error.</li>
+    <li><span class="lbl">"Confirm booking" (primary)</span> → validates; on success opens the confirm Modal; on failure fires an error Toast + inline messages.</li>
+    <li><span class="lbl">Modal "Confirm &amp; pay"</span> → finalizes: closes modal, sets confirmed, success Toast, scrolls to top. In the real app this routes to <span class="mono">/booking/[ref]/confirmation</span>.</li>
+    <li><span class="lbl">Modal "Back" / close</span> → dismiss, keep form state.</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv">day · slot · form fields · errors · modal open · confirmed · toast — all <em>designed</em> in the screen.</span></li>
+    <li><span class="st">Loading</span><span class="sv"><em>Designed</em> — slot grid shows skeleton cells (~650ms) after changing day.</span></li>
+    <li><span class="st">Empty</span><span class="sv"><em>Designed</em> — fully-booked day renders <code>EmptyState</code> "No openings that day".</span></li>
+    <li><span class="st">Error</span><span class="sv"><em>Designed (validation)</em> — missing name / contact / slot → inline field errors + summary error + error Toast. Add a slot-load error fallback if wired to a fetch.</span></li>
+    <li><span class="st">Disabled</span><span class="sv"><em>Designed</em> — after confirm, CTA becomes a disabled "Booking confirmed". Unavailable TimeSlots are non-interactive.</span></li>
+  </ul>
+</div>
+
+<!-- CONFIRMATION -->
+<div class="screen">
+  <h3>Booking Confirmation <span class="route">/booking/[ref]/confirmation</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">"Add to calendar"</span> → success Toast (MVP stub; real app downloads an .ics).</li>
+    <li><span class="lbl">"View my bookings"</span> → info Toast / <span class="mono">/bookings</span> <span class="fin soon">Coming soon</span>.</li>
+    <li><span class="lbl">"Change time" / "Cancel"</span> → reschedule/cancel <span class="fin soon">Coming soon</span> (disable or toast).</li>
+    <li><span class="lbl">"Send a message" to provider</span> → <span class="fin soon">Coming soon</span>.</li>
+    <li><span class="lbl">Help center / contact support links</span> → <span class="fin soon">Coming soon</span>.</li>
+    <li><span class="lbl">Preview toggle (Confirmed / Pending)</span> → demo control; drive from booking status in production, not a visible toggle.</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv"><em>Designed</em> — confirmed vs pending changes hero copy, halo, total label ("Total paid" vs "Total due after visit"), and the active "what happens next" step.</span></li>
+    <li><span class="st">Loading</span><span class="sv">None in MVP (rendered from the just-created booking).</span></li>
+    <li><span class="st">Empty</span><span class="sv">Invalid <span class="mono">ref</span> → "Booking not found" fallback (add for robustness).</span></li>
+    <li><span class="st">Error</span><span class="sv">N/A in MVP.</span></li>
+    <li><span class="st">Disabled</span><span class="sv">Reschedule/cancel actions disabled or marked Coming soon.</span></li>
+  </ul>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen">
+  <h3>Business Dashboard <span class="route">/dashboard</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">"Add availability" (header + nav CTA)</span> → in MVP info Toast; production routes to <span class="mono">/dashboard/availability</span>.</li>
+    <li><span class="lbl">Today's-bookings Tabs</span> All / New / Confirmed → filter the list.</li>
+    <li><span class="lbl">Row "Confirm"</span> → marks booking confirmed (badge New→Confirmed) + success Toast.</li>
+    <li><span class="lbl">Row "View details"</span> → info Toast in MVP; production opens the Bookings drawer.</li>
+    <li><span class="lbl">"View all" (Upcoming)</span> → <span class="mono">/dashboard/bookings</span>.</li>
+    <li><span class="lbl">BookingCard "View details"</span> → booking detail.</li>
+    <li><span class="lbl">"Manage availability"</span> → <span class="mono">/dashboard/availability</span>.</li>
+    <li><span class="lbl">Active / New business toggle</span> → demo control for the empty-account story (seed flag in production).</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv"><em>Designed</em> — tab filter, per-row confirm, mode toggle, toasts.</span></li>
+    <li><span class="st">Loading</span><span class="sv">Add stat/list skeletons if wired to data; mock renders instantly.</span></li>
+    <li><span class="st">Empty</span><span class="sv"><em>Designed</em> — New-business mode shows zeroed stats, an <code>EmptyState</code> "No bookings yet", and low-activity placeholders for Upcoming + Activity.</span></li>
+    <li><span class="st">Error</span><span class="sv">Reuse the console error pattern if a future fetch fails.</span></li>
+    <li><span class="st">Disabled</span><span class="sv">A filtered view with no rows shows "Nothing here — every booking in this view is handled."</span></li>
+  </ul>
+</div>
+
+<!-- BOOKINGS -->
+<div class="screen">
+  <h3>Bookings Management <span class="route">/dashboard/bookings</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">Search input</span> → filters by customer / service / reference live.</li>
+    <li><span class="lbl">Service &amp; date selects</span> → narrow the table. <span class="lbl">Date-range button</span> → <span class="fin soon">Coming soon</span> (static label in MVP).</li>
+    <li><span class="lbl">Status Tabs</span> All / New / Confirmed / Completed / Cancelled (with counts) → filter.</li>
+    <li><span class="lbl">Clear</span> → reset filters (disabled when none active).</li>
+    <li><span class="lbl">Table row / eye icon</span> → open the detail drawer.</li>
+    <li><span class="lbl">Row contextual action</span> — New → "Confirm"; Confirmed → "Mark completed"; with a success Toast and status advance.</li>
+    <li><span class="lbl">Drawer footer</span> — status-aware: New → Confirm + Cancel; Confirmed → Mark completed + Cancel; Completed/Cancelled → closed note.</li>
+    <li><span class="lbl">Drawer contact links, scrim, close</span> → email link / dismiss.</li>
+    <li><span class="lbl">Preview toggle (Data/Loading/Empty/Error)</span> → demo control; remove or gate behind dev flag in production.</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv"><em>Designed</em> — filters, tab counts, per-booking status overrides, drawer open, toasts.</span></li>
+    <li><span class="st">Loading</span><span class="sv"><em>Designed</em> — skeleton table rows.</span></li>
+    <li><span class="st">Empty</span><span class="sv"><em>Designed</em> — no matches → <code>EmptyState</code> "No bookings match" + "Clear filters".</span></li>
+    <li><span class="st">Error</span><span class="sv"><em>Designed</em> — error panel "We couldn't load your bookings" + "Try again".</span></li>
+    <li><span class="st">Disabled</span><span class="sv"><em>Designed</em> — "Clear" disabled with no active filters; completed/cancelled rows expose no status action.</span></li>
+  </ul>
+</div>
+
+<!-- AVAILABILITY -->
+<div class="screen">
+  <h3>Availability Management <span class="route">/dashboard/availability</span></h3>
+  <h4>Clickable elements &amp; behaviour</h4>
+  <ul class="tight">
+    <li><span class="lbl">Week arrows / "This week"</span> → change the visible week (offset label updates).</li>
+    <li><span class="lbl">"Add time slot" / per-day "Add slot"</span> → open the slot Modal (date prefilled).</li>
+    <li><span class="lbl">Existing slot</span> (available/booked) → open Modal in edit mode; blocked/unavailable slots are non-interactive.</li>
+    <li><span class="lbl">Quick chips</span> — Copy previous week (brief loading → success), Add recurring, Block a day (warning toast), Clear a day (info toast).</li>
+    <li><span class="lbl">Overlap warning "Review slots"</span> → opens the conflicting slot for editing.</li>
+    <li><span class="lbl">Modal</span> — service, date, start/end selects, capacity stepper, repeat (none/weekly), then Save (adds/updates; weekly fans across the week) + success Toast; Cancel dismisses.</li>
+    <li><span class="lbl">"Edit rules"</span> → <span class="fin soon">Coming soon</span> (info toast in MVP).</li>
+    <li><span class="lbl">Preview toggle (Schedule/Loading/Error)</span> → demo control.</li>
+  </ul>
+  <ul class="states">
+    <li><span class="st">State change</span><span class="sv"><em>Designed</em> — week data mutates on add/edit/block/clear; modal form state; overlap detection; toasts.</span></li>
+    <li><span class="st">Loading</span><span class="sv"><em>Designed</em> — board shows skeleton slots (e.g. during "Copy previous week").</span></li>
+    <li><span class="st">Empty</span><span class="sv"><em>Designed</em> — a day with no slots shows a per-column empty cell + "Add slot".</span></li>
+    <li><span class="st">Error</span><span class="sv"><em>Designed</em> — "We couldn't load your schedule" + Go back / Try again.</span></li>
+    <li><span class="st">Disabled</span><span class="sv"><em>Designed</em> — blocked/unavailable slots non-clickable; "This week" appears only when off the current week.</span></li>
+  </ul>
+</div>
+
+<!-- ============ 6. MVP SCOPE ============ -->
+<h2 id="mvp">6 · MVP scope — the first portfolio demo</h2>
+<p>The demo should let a viewer walk both stories end-to-end on mock data, with every designed state reachable. No backend, no auth, no payments — persistence is in-memory (React state) and resets on refresh.</p>
+
+<h3>Customer story — must work</h3>
+<ul class="tight">
+  <li>Home → enter a search → <strong>Search Results</strong> with working filters, sort, and the designed empty state.</li>
+  <li>Open a result → <strong>Service Details</strong>: pick a day (with slot loading), pick a time, fill details, hit validation, confirm via modal.</li>
+  <li>Land on <strong>Confirmation</strong> showing the booked details; toggle/observe confirmed vs pending.</li>
+</ul>
+
+<h3>Business story — must work</h3>
+<ul class="tight">
+  <li><strong>Dashboard</strong>: stats, today's bookings with tab filtering + per-row confirm, and the new-business empty account.</li>
+  <li><strong>Bookings Management</strong>: search + filter + tabs, the detail drawer with status-aware actions, and all four table states (data / loading / empty / error).</li>
+  <li><strong>Availability</strong>: weekly board, add/edit slot modal, block/clear/copy quick actions, overlap warning, loading + error states.</li>
+</ul>
+
+<h3>Cross-cutting — must work</h3>
+<ul class="tight">
+  <li>Both TopNavs with correct active states; responsive down to tablet; full design-token fidelity (yellow primary, warm neutrals, pill shapes, soft shadows).</li>
+  <li>Toasts (auto-dismiss), Modals (scrim + spring), and all empty/loading/error patterns from the design system.</li>
+  <li>Keyboard focus rings (yellow glow), ≥44px touch targets, sentence-case copy, no emoji.</li>
+</ul>
+
+<div class="note ok">
+  <h4><span class="tag">Definition of done</span></h4>
+  <p>A reviewer can complete a booking as a customer and manage it as a business owner, every interactive control either does something or is clearly marked <span class="fin soon">Coming soon</span>, and no state in this spec is unreachable.</p>
+</div>
+
+<!-- ============ 7. POSTPONED ============ -->
+<h2 id="postponed">7 · Postponed / Coming soon</h2>
+<p>These are out of scope for the first demo. Keep their entry points visible (so the product feels whole) but render a friendly placeholder or disable the control — never a dead link or a silent no-op.</p>
+
+<table class="grid">
+  <thead><tr><th style="width:30%">Feature</th><th>Why postponed</th><th style="width:22%">How to handle now</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Auth / login</strong></td><td>No screen designed; frontend-only demo.</td><td>No gating; assume a signed-in seed user.</td></tr>
+    <tr><td><strong>List your service</strong> (provider onboarding)</td><td>CTA exists in nav; no flow designed.</td><td><span class="fin soon">Coming soon</span> placeholder route.</td></tr>
+    <tr><td><strong>Customer Bookings &amp; Favorites</strong></td><td>Nav targets only; no screens.</td><td>Placeholder pages; "View my bookings" toasts.</td></tr>
+    <tr><td><strong>Messaging</strong> (customer ↔ provider)</td><td>Referenced on Confirmation + drawer.</td><td>Disable "Send a message" / mark Coming soon.</td></tr>
+    <tr><td><strong>Calendar (month) view</strong></td><td>Business nav link; only weekly board built.</td><td>Placeholder; default to weekly Availability.</td></tr>
+    <tr><td><strong>Services catalog editor</strong></td><td>Business nav link; not designed.</td><td>Placeholder route.</td></tr>
+    <tr><td><strong>Real payments</strong></td><td>"Confirm &amp; pay" is cosmetic.</td><td>No payment step; finalize immediately.</td></tr>
+    <tr><td><strong>Reschedule / cancel (customer)</strong></td><td>Links on Confirmation; no flow.</td><td>Disable or Coming soon.</td></tr>
+    <tr><td><strong>Edit availability rules</strong></td><td>Button present; no editor.</td><td>Info toast / Coming soon.</td></tr>
+    <tr><td><strong>Date-range picker (Bookings)</strong></td><td>Static label in design.</td><td>Non-interactive label or Coming soon.</td></tr>
+    <tr><td><strong>Persistence / backend</strong></td><td>Frontend-only portfolio scope.</td><td>In-memory mock state; resets on refresh.</td></tr>
+    <tr><td><strong>Notifications (email/SMS)</strong></td><td>Copy references reminders.</td><td>Describe only; no real sending.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <h4>Demo-only controls to gate in production</h4>
+  <p>Several screens include <strong>preview toggles</strong> (Confirmation: Confirmed/Pending · Dashboard: Active/New business · Bookings: Data/Loading/Empty/Error · Availability: Schedule/Loading/Error). They're great for showing states in a portfolio, but in a "real" build they should be driven by data, not visible switches — keep them behind a dev flag or remove before a production read.</p>
+</div>
+
+<p style="margin-top:42px;font-size:12.5px;color:var(--ink-400);border-top:1px solid var(--border-soft);padding-top:14px;">ServiceFlow — Implementation handoff · documentation only. Design system, Booking App kit, and project screens referenced unchanged. Build against design tokens; mark every clickable element as functional or Coming soon.</p>
+
+</td></tr></tbody>
+<tfoot><tr><td class="ftr-space"></td></tr></tfoot>
+</table>
+</main>
+
+</body>
+</html>

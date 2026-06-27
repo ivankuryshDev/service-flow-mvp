@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ServiceFlow — Search results</title>
+<link rel="stylesheet" href="_ds/serviceflow-design-system-c6741d18-e4e2-4a01-84ec-391cb83d6d23/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/serviceflow-design-system-c6741d18-e4e2-4a01-84ec-391cb83d6d23/tokens/colors.css">
+<link rel="stylesheet" href="_ds/serviceflow-design-system-c6741d18-e4e2-4a01-84ec-391cb83d6d23/tokens/typography.css">
+<link rel="stylesheet" href="_ds/serviceflow-design-system-c6741d18-e4e2-4a01-84ec-391cb83d6d23/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/serviceflow-design-system-c6741d18-e4e2-4a01-84ec-391cb83d6d23/styles.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg-page);font-family:var(--font-sans);color:var(--text-body)}
+  .container{max-width:1180px;margin:0 auto;padding:0 28px}
+
+  /* summary bar */
+  .summaryband{background:var(--cream-100);border-bottom:1px solid var(--border-soft);position:sticky;top:0;z-index:40;
+    backdrop-filter:blur(8px);background:rgba(248,242,230,.9)}
+  .summarybar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 28px;flex-wrap:wrap}
+  .summarychips{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .schip{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink-800)}
+  .schip svg{color:var(--accent-press)}
+  .sdot{color:var(--ink-300);font-weight:700}
+
+  /* layout */
+  .layout{display:grid;grid-template-columns:268px 1fr;gap:32px;padding-top:32px;padding-bottom:72px;align-items:start}
+
+  /* filters */
+  .filters{position:sticky;top:96px;background:var(--white);border:1.5px solid var(--border-card);
+    border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);padding:8px 22px}
+  .filterhead{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;border-bottom:1px solid var(--border-soft)}
+  .filterhead h2{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--ink-900);margin:0}
+  .clearbtn{background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--accent-press);cursor:pointer;padding:0}
+  .clearbtn:hover{color:var(--yellow-600)}
+  .fgroup{padding:20px 0}
+  .ftitle{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-400);margin:0 0 14px}
+
+  /* checkbox rows */
+  .checkrow{display:flex;align-items:center;gap:11px;padding:6px 0;font-size:14.5px;font-weight:600;color:var(--ink-700);cursor:pointer}
+  .checkrow input{position:absolute;opacity:0;width:0;height:0}
+  .checkbox{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;
+    border:1.5px solid var(--border-strong);background:var(--white);color:var(--text-on-accent);flex-shrink:0;transition:all var(--dur-fast) var(--ease-out)}
+  .checkrow input:checked + .checkbox{background:var(--accent-strong);border-color:var(--accent-strong)}
+
+  /* slider */
+  .pricelabel{font-size:14.5px;font-weight:600;color:var(--ink-600);margin-bottom:12px}
+  .pricelabel strong{color:var(--ink-900);font-weight:800}
+  .slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;background:var(--cream-200);outline:none;accent-color:var(--yellow-500)}
+  .slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;
+    background:var(--accent-strong);border:3px solid var(--white);box-shadow:var(--shadow-sm);cursor:pointer}
+  .slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent-strong);border:3px solid var(--white);box-shadow:var(--shadow-sm);cursor:pointer}
+  .sliderends{display:flex;justify-content:space-between;margin-top:9px;font-size:12px;font-weight:600;color:var(--ink-400)}
+
+  /* filter pills */
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px}
+  .fpill{display:inline-flex;align-items:center;gap:5px;padding:9px 15px;border-radius:999px;border:1.5px solid var(--border);
+    background:var(--white);font-family:inherit;font-size:13.5px;font-weight:700;color:var(--ink-600);cursor:pointer;
+    transition:all var(--dur-fast) var(--ease-out)}
+  .fpill:hover{border-color:var(--yellow-300)}
+  .fpill.on{background:var(--yellow-50);border-color:var(--accent-strong);color:var(--accent-press)}
+
+  /* results header */
+  .resulthead{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px;flex-wrap:wrap}
+  .rTitle{font-family:var(--font-display);font-size:32px;font-weight:800;letter-spacing:-.025em;color:var(--ink-900);margin:0}
+  .rSub{font-size:15px;font-weight:500;color:var(--ink-500);margin:7px 0 0}
+  .sortwrap{min-width:210px}
+
+  /* result cards */
+  .cardlist{display:flex;flex-direction:column;gap:18px}
+  .rcard{background:var(--white);border:1.5px solid var(--border-card);border-radius:var(--radius-xl);overflow:hidden;
+    transition:transform var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out)}
+  .rcard.rec{border-color:var(--yellow-300);background:linear-gradient(180deg,var(--yellow-50),var(--white) 70px)}
+  .recflag{display:flex;align-items:center;gap:7px;padding:9px 24px;background:var(--accent-strong);color:var(--text-on-accent);
+    font-size:12.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+  .rbody{display:flex;gap:22px;padding:20px}
+  .rthumb{position:relative;width:188px;flex-shrink:0;border-radius:var(--radius-lg);min-height:150px;overflow:hidden}
+  .rdur{position:absolute;bottom:12px;left:12px;background:rgba(27,24,19,.82);color:var(--cream-50);
+    padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700}
+  .rmain{flex:1;min-width:0;display:flex;flex-direction:column}
+  .rtop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .rprovider{font-size:14px;font-weight:700;color:var(--ink-500)}
+  .rrating{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:800;color:var(--ink-800)}
+  .rrating em{font-style:normal;font-weight:600;color:var(--ink-400)}
+  .rname{font-family:var(--font-display);font-size:23px;font-weight:700;letter-spacing:-.015em;color:var(--ink-900);margin:6px 0 8px;line-height:1.15}
+  .rloc{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ink-400);margin-bottom:auto}
+  .rloc svg{color:var(--ink-400)}
+  .rnext{margin-top:16px}
+  .rnextlabel{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--success-700);margin-bottom:9px}
+  .livedot{width:7px;height:7px;border-radius:50%;background:var(--success-500);box-shadow:0 0 0 3px var(--success-100)}
+  .slotrow{display:flex;flex-wrap:wrap;gap:8px}
+  .miniSlot{font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px;
+    border:1.5px solid var(--border);background:var(--white);color:var(--ink-700);letter-spacing:-.02em}
+  .miniSlot.first{background:var(--yellow-50);border-color:var(--accent-strong);color:var(--accent-press);font-weight:700}
+  .raside{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:16px;
+    padding-left:22px;border-left:1px solid var(--border-soft);min-width:172px}
+  .rpriceblock{text-align:right}
+  .rfrom{display:block;font-size:12.5px;font-weight:600;color:var(--ink-400);margin-bottom:-2px}
+  .rprice{font-family:var(--font-display);font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--ink-900)}
+  .emptywrap{padding:10px 0}
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="_ds/serviceflow-design-system-c6741d18-e4e2-4a01-84ec-391cb83d6d23/_ds_bundle.js"></script>
+  <script type="text/babel" src="screens/SearchResultsPage.jsx" data-presets="react"></script>
+  <script type="text/babel" data-presets="react">
+    ReactDOM.createRoot(document.getElementById('root')).render(<SearchResultsPage/>);
+  </script>
+</body></html>
