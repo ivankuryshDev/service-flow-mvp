@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
+@theme {
+  /* --- Fonts: resolved at runtime via next/font CSS vars injected on <html> --- */
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-jakarta);
+  --font-mono: var(--font-dm-mono);
+
+  /* --- Yellow palette (primary accent) --- */
+  --color-yellow-50: #FFF8E4;
+  --color-yellow-100: #FFEEBE;
+  --color-yellow-200: #FFE08C;
+  --color-yellow-300: #FFD25A;
+  --color-yellow-400: #FFC42E;
+  --color-yellow-500: #F5B000;
+  --color-yellow-600: #D89800;
+  --color-yellow-700: #A87400;
+
+  /* --- Ink: warm charcoal typography --- */
+  --color-ink-900: #1B1813;
+  --color-ink-800: #262219;
+  --color-ink-700: #38332A;
+  --color-ink-600: #524C40;
+  --color-ink-500: #6E6657;
+  --color-ink-400: #8C8474;
+  --color-ink-300: #B3AB99;
+  --color-ink-200: #D7CFBE;
+
+  /* --- Cream surfaces --- */
+  --color-cream-50: #FCFAF4;
+  --color-cream-100: #F8F2E6;
+  --color-cream-200: #F1E8D7;
+
+  /* --- Borders --- */
+  --color-border-soft: #EFE7D8;
+  --color-border: #E2D9C7;
+  --color-border-strong: #CFC4AE;
+
+  /* --- Semantic: success --- */
+  --color-success-700: #156D45;
+  --color-success-500: #1F9D63;
+  --color-success-100: #E2F3EA;
+
+  /* --- Semantic: warning --- */
+  --color-warning-700: #9C5E0E;
+  --color-warning-500: #E08A1E;
+  --color-warning-100: #FBEFD8;
+
+  /* --- Semantic: error --- */
+  --color-error-700: #9E3127;
+  --color-error-500: #D9483B;
+  --color-error-100: #FBE6E2;
+
+  /* --- Border radius --- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 40px;
+  --radius-pill: 999px;
+
+  /* --- Shadows (warm-tinted, soft) --- */
+  --shadow-xs: 0 1px 2px rgba(43, 36, 20, 0.06);
+  --shadow-sm: 0 2px 8px rgba(43, 36, 20, 0.06);
+  --shadow-md: 0 8px 24px rgba(43, 36, 20, 0.08);
+  --shadow-lg: 0 18px 44px rgba(43, 36, 20, 0.10);
+  --shadow-xl: 0 32px 70px rgba(43, 36, 20, 0.14);
+  --shadow-accent: 0 10px 28px rgba(245, 176, 0, 0.32);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg-page: #FCFAF4;
+  --text-heading: #262219;
+  --text-body: #524C40;
+  --text-muted: #8C8474;
+  --accent: #FFC42E;
+  --border-input: #E2D9C7;
+  --border-focus: #F5B000;
+  --focus-ring: rgba(245, 176, 0, 0.35);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-body);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
