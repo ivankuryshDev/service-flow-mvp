@@ -27,7 +27,7 @@ export function formatDateLabel(dateStr: string): string {
   });
 }
 
-function formatTime(time: string): string {
+export function formatTime(time: string): string {
   const [hourStr, minuteStr] = time.split(':');
   const hour = parseInt(hourStr, 10);
   const period = hour >= 12 ? 'PM' : 'AM';
