@@ -48,4 +48,9 @@ export const mockAvailability: AvailabilitySlot[] = [
   { id: 'slot-030', providerId: 'prv-8', serviceId: 'svc-6', date: '2026-06-29', startTime: '09:00', endTime: '10:15', status: 'available' },
   { id: 'slot-031', providerId: 'prv-8', serviceId: 'svc-6', date: '2026-07-02', startTime: '15:00', endTime: '16:15', status: 'available' },
   { id: 'slot-032', providerId: 'prv-8', serviceId: 'svc-6', date: '2026-07-03', startTime: '10:00', endTime: '11:15', status: 'available' },
+
+  // Dublin Laptop Care (prv-1) — extra past slots for bookings management demo
+  { id: 'slot-033', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-24', startTime: '10:00', endTime: '11:30', status: 'booked' },
+  { id: 'slot-034', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-25', startTime: '14:00', endTime: '15:30', status: 'booked' },
+  { id: 'slot-035', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-28', startTime: '09:00', endTime: '10:30', status: 'booked' },
 ];
