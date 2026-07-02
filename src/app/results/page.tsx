@@ -136,6 +136,12 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
 
   const isActive = !!category || hasActiveFilters(currentMaxPrice, rating, normalizedAvail, sort);
 
+  // Forces IncrementalResultsList to remount (resetting its revealed count to 5)
+  // whenever any active filter/sort value changes.
+  const resetKey = [category, location, date, sort, currentMaxPrice, rating, normalizedAvail]
+    .map((value) => value ?? '')
+    .join('|');
+
   return (
     <PageShell>
       <ResultsHeader
@@ -171,6 +177,7 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
                 location={location}
                 hasActiveFilters={isActive}
                 clearHref={clearHref}
+                resetKey={resetKey}
                 sortControl={
                   <SortControl
                     category={category}

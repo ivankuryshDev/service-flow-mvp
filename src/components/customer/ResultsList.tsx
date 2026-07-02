@@ -3,6 +3,7 @@ import type { Service, Provider } from '@/types/service';
 import type { AvailabilitySlot } from '@/types/availability';
 import { ResultCard } from './ResultCard';
 import { EmptyResults } from './EmptyResults';
+import { IncrementalResultsList } from './IncrementalResultsList';
 
 export interface ResultItem {
   service: Service;
@@ -20,6 +21,7 @@ interface ResultsListProps {
   hasActiveFilters?: boolean;
   clearHref?: string;
   sortControl: ReactNode;
+  resetKey: string;
 }
 
 export function ResultsList({
@@ -29,7 +31,21 @@ export function ResultsList({
   hasActiveFilters,
   clearHref,
   sortControl,
+  resetKey,
 }: ResultsListProps) {
+  const cardElements = results.map((item, i) => (
+    <li key={`${item.provider.id}-${item.service.id}`}>
+      <ResultCard
+        service={item.service}
+        provider={item.provider}
+        nextSlotLabel={item.nextSlotLabel}
+        openTodayCount={item.openTodayCount}
+        openTodaySlotTimes={item.openTodaySlotTimes}
+        isRecommended={i === 0}
+      />
+    </li>
+  ));
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -47,20 +63,7 @@ export function ResultsList({
           clearHref={clearHref}
         />
       ) : (
-        <ul className="flex flex-col gap-4" role="list">
-          {results.map((item, i) => (
-            <li key={`${item.provider.id}-${item.service.id}`}>
-              <ResultCard
-                service={item.service}
-                provider={item.provider}
-                nextSlotLabel={item.nextSlotLabel}
-                openTodayCount={item.openTodayCount}
-                openTodaySlotTimes={item.openTodaySlotTimes}
-                isRecommended={i === 0}
-              />
-            </li>
-          ))}
-        </ul>
+        <IncrementalResultsList key={resetKey}>{cardElements}</IncrementalResultsList>
       )}
     </div>
   );
