@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 import { Container } from '@/components/layout/Container';
 import { ResultsHeader } from '@/components/customer/ResultsHeader';
-import { ResultsFilters } from '@/components/customer/ResultsFilters';
+import { ResultsFilters, SortControl } from '@/components/customer/ResultsFilters';
 import { ResultsList } from '@/components/customer/ResultsList';
 import type { ResultItem } from '@/components/customer/ResultsList';
 import { mockServices } from '@/data/mockServices';
@@ -138,39 +138,51 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
 
   return (
     <PageShell>
+      <ResultsHeader
+        category={category}
+        location={location}
+        date={date}
+        currentMaxPrice={currentMaxPrice}
+        rating={rating}
+        avail={normalizedAvail}
+        sort={sort}
+      />
       <div className="min-h-[calc(100vh-65px)] bg-cream-50 py-8 sm:py-12">
         <Container>
-          <div className="flex flex-col gap-6">
-            <ResultsHeader
-              count={results.length}
-              category={category}
-              location={location}
-              date={date}
-            />
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-              <aside className="w-full lg:w-64 lg:shrink-0">
-                <ResultsFilters
-                  category={category}
-                  location={location}
-                  date={date}
-                  sort={sort}
-                  sliderMaxPrice={sliderMaxPrice}
-                  currentMaxPrice={currentMaxPrice}
-                  rating={rating}
-                  avail={normalizedAvail}
-                  isActive={isActive}
-                  clearHref={clearHref}
-                />
-              </aside>
-              <div className="min-w-0 flex-1">
-                <ResultsList
-                  results={results}
-                  category={category}
-                  location={location}
-                  hasActiveFilters={isActive}
-                  clearHref={clearHref}
-                />
-              </div>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+            <aside className="w-full lg:sticky lg:top-20 lg:w-64 lg:shrink-0 lg:self-start">
+              <ResultsFilters
+                category={category}
+                location={location}
+                date={date}
+                sort={sort}
+                sliderMaxPrice={sliderMaxPrice}
+                currentMaxPrice={currentMaxPrice}
+                rating={rating}
+                avail={normalizedAvail}
+                isActive={isActive}
+                clearHref={clearHref}
+              />
+            </aside>
+            <div className="min-w-0 flex-1">
+              <ResultsList
+                results={results}
+                category={category}
+                location={location}
+                hasActiveFilters={isActive}
+                clearHref={clearHref}
+                sortControl={
+                  <SortControl
+                    category={category}
+                    location={location}
+                    date={date}
+                    currentMaxPrice={currentMaxPrice}
+                    rating={rating}
+                    avail={normalizedAvail}
+                    sort={sort}
+                  />
+                }
+              />
             </div>
           </div>
         </Container>
