@@ -14,11 +14,26 @@ interface ResultsListProps {
   results: ResultItem[];
   category?: string;
   location?: string;
+  hasActiveFilters?: boolean;
+  clearHref?: string;
 }
 
-export function ResultsList({ results, category, location }: ResultsListProps) {
+export function ResultsList({
+  results,
+  category,
+  location,
+  hasActiveFilters,
+  clearHref,
+}: ResultsListProps) {
   if (results.length === 0) {
-    return <EmptyResults category={category} location={location} />;
+    return (
+      <EmptyResults
+        category={category}
+        location={location}
+        hasActiveFilters={hasActiveFilters}
+        clearHref={clearHref}
+      />
+    );
   }
   return (
     <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
