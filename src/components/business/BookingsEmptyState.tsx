@@ -1,10 +1,11 @@
-import Link from 'next/link';
-
 interface BookingsEmptyStateProps {
   activeStatus: string;
+  hasSearch?: boolean;
+  onClearFilter?: () => void;
 }
 
-export function BookingsEmptyState({ activeStatus }: BookingsEmptyStateProps) {
+export function BookingsEmptyState({ activeStatus, hasSearch, onClearFilter }: BookingsEmptyStateProps) {
+  const isFiltered = activeStatus !== 'all' || hasSearch;
   const label = activeStatus === 'all' ? '' : `${activeStatus} `;
 
   return (
@@ -23,21 +24,22 @@ export function BookingsEmptyState({ activeStatus }: BookingsEmptyStateProps) {
       </div>
       <div>
         <p className="font-display text-lg font-semibold text-ink-800">
-          No {label}bookings found.
+          {isFiltered ? 'No bookings match' : `No ${label}bookings found.`}
         </p>
         <p className="mt-1 text-sm text-ink-400">
-          {activeStatus === 'all'
-            ? 'Bookings will appear here once customers start booking.'
-            : 'Try a different filter to see other bookings.'}
+          {isFiltered
+            ? 'Try a different status, search term, or clear your filters.'
+            : 'Bookings will appear here once customers start booking.'}
         </p>
       </div>
-      {activeStatus !== 'all' && (
-        <Link
-          href="/business/bookings"
+      {isFiltered && onClearFilter && (
+        <button
+          type="button"
+          onClick={onClearFilter}
           className="text-sm font-medium text-yellow-600 hover:text-yellow-700 focus-visible:outline-none focus-visible:underline"
         >
-          Clear filter
-        </Link>
+          Clear filters
+        </button>
       )}
     </div>
   );

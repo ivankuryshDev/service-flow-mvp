@@ -1,10 +1,10 @@
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatDateLabel, formatTime } from '@/lib/dates';
 import type { EnrichedBooking } from './BookingsTable';
 
 interface BookingMobileCardProps {
   item: EnrichedBooking;
+  onClick: () => void;
 }
 
 function getInitials(name: string): string {
@@ -16,9 +16,21 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export function BookingMobileCard({ item: { booking, slot, service } }: BookingMobileCardProps) {
+export function BookingMobileCard({ item: { booking, slot, service }, onClick }: BookingMobileCardProps) {
   return (
-    <Card padding="sm">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={`Booking ${booking.reference} for ${booking.customerName}`}
+      className="cursor-pointer rounded-xl border border-border-soft bg-white p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2"
+    >
       {/* Row 1: avatar + name + status */}
       <div className="flex items-center gap-3">
         <div
@@ -47,6 +59,6 @@ export function BookingMobileCard({ item: { booking, slot, service } }: BookingM
           €{booking.price}
         </span>
       </div>
-    </Card>
+    </div>
   );
 }

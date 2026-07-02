@@ -14,9 +14,10 @@ export interface EnrichedBooking {
 
 interface BookingsTableProps {
   items: EnrichedBooking[];
+  onRowClick: (id: string) => void;
 }
 
-export function BookingsTable({ items }: BookingsTableProps) {
+export function BookingsTable({ items, onRowClick }: BookingsTableProps) {
   return (
     <Card padding="none" className="hidden md:block overflow-hidden">
       <table className="w-full text-sm">
@@ -37,7 +38,16 @@ export function BookingsTable({ items }: BookingsTableProps) {
         </thead>
         <tbody className="divide-y divide-border-soft">
           {items.map(({ booking, slot, service }) => (
-            <tr key={booking.id} className="hover:bg-cream-50/50 transition-colors">
+            <tr
+              key={booking.id}
+              onClick={() => onRowClick(booking.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onRowClick(booking.id);
+              }}
+              tabIndex={0}
+              aria-label={`Booking ${booking.reference} for ${booking.customerName}`}
+              className="cursor-pointer hover:bg-cream-50/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-yellow-500"
+            >
               <td className="px-5 py-4">
                 <span className="font-mono text-xs text-ink-500">{booking.reference}</span>
               </td>

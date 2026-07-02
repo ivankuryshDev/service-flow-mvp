@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { cn } from '@/lib/cn';
 
 interface Counts {
@@ -12,29 +11,30 @@ interface Counts {
 interface BookingsFiltersProps {
   activeStatus: string;
   counts: Counts;
+  onStatusChange: (status: string) => void;
 }
 
 const tabs = [
-  { key: 'all',       label: 'All',       href: '/business/bookings' },
-  { key: 'new',       label: 'New',       href: '/business/bookings?status=new' },
-  { key: 'confirmed', label: 'Confirmed', href: '/business/bookings?status=confirmed' },
-  { key: 'completed', label: 'Completed', href: '/business/bookings?status=completed' },
-  { key: 'cancelled', label: 'Cancelled', href: '/business/bookings?status=cancelled' },
+  { key: 'all',       label: 'All' },
+  { key: 'new',       label: 'New' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
 ] as const;
 
-export function BookingsFilters({ activeStatus, counts }: BookingsFiltersProps) {
+export function BookingsFilters({ activeStatus, counts, onStatusChange }: BookingsFiltersProps) {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filter bookings by status">
       {tabs.map((tab) => {
         const isActive = activeStatus === tab.key;
         const count = counts[tab.key];
         return (
-          <Link
+          <button
             key={tab.key}
-            href={tab.href}
+            type="button"
             role="tab"
-            aria-current={isActive ? 'page' : undefined}
             aria-selected={isActive}
+            onClick={() => onStatusChange(tab.key)}
             className={cn(
               'inline-flex shrink-0 items-center gap-1.5 rounded-pill px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2',
               isActive
@@ -53,7 +53,7 @@ export function BookingsFilters({ activeStatus, counts }: BookingsFiltersProps) 
                 {count}
               </span>
             )}
-          </Link>
+          </button>
         );
       })}
     </div>
