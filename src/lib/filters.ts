@@ -1,9 +1,6 @@
-export function matchesPrice(priceFrom: number, filter: string | undefined): boolean {
-  if (!filter || filter === 'any') return true;
-  if (filter === 'under50') return priceFrom < 50;
-  if (filter === '50-100') return priceFrom >= 50 && priceFrom <= 100;
-  if (filter === '100plus') return priceFrom > 100;
-  return true;
+export function matchesMaxPrice(priceFrom: number, maxPrice: number | undefined): boolean {
+  if (maxPrice === undefined) return true;
+  return priceFrom <= maxPrice;
 }
 
 export function matchesRating(rating: number, filter: string | undefined): boolean {
@@ -26,13 +23,13 @@ export function matchesAvail(
 }
 
 export function hasActiveFilters(
-  price?: string,
+  maxPrice?: number,
   rating?: string,
   avail?: string,
   sort?: string,
 ): boolean {
   return (
-    (!!price && price !== 'any') ||
+    maxPrice !== undefined ||
     (!!rating && rating !== 'any') ||
     (!!avail && avail !== 'any') ||
     (!!sort && sort !== 'recommended')

@@ -13,20 +13,20 @@ import { mockServices } from '@/data/mockServices';
 import { mockProviders } from '@/data/mockProviders';
 import { mockAvailability } from '@/data/mockAvailability';
 import { formatSlotLabel } from '@/lib/dates';
-import { matchesPrice, matchesRating, matchesAvail, hasActiveFilters } from '@/lib/filters';
+import { matchesMaxPrice, matchesRating, matchesAvail, hasActiveFilters } from '@/lib/filters';
 
 type PageSearchParams = Promise<{
   category?: string;
   location?: string;
   date?: string;
   sort?: string;
-  price?: string;
+  maxPrice?: string;
   rating?: string;
   avail?: string;
 }>;
 
 export default async function ResultsPage(props: { searchParams: PageSearchParams }) {
-  const { category, location, date, sort, price, rating, avail } = await props.searchParams;
+  const { category, location, date, sort, maxPrice, rating, avail } = await props.searchParams;
   const today = new Date().toISOString().slice(0, 10);
 
   // Compute week end for "this week" availability filter
@@ -81,12 +81,27 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
     }
   }
 
-  // Apply filter controls
-  const results = allResults.filter(
+  // Apply non-price filter controls first, so the price slider's ceiling
+  // reflects what's reachable regardless of the currently selected maxPrice.
+  const baseResultsForPriceRange = allResults.filter(
     (item) =>
-      matchesPrice(item.service.priceFrom, price) &&
       matchesRating(item.provider.rating, rating) &&
       matchesAvail(item.nextSlot?.date ?? null, avail, today, weekEnd),
+  );
+
+  const sliderMaxPrice =
+    baseResultsForPriceRange.length > 0
+      ? Math.max(...baseResultsForPriceRange.map((item) => item.service.priceFrom))
+      : Math.max(...mockServices.map((s) => s.priceFrom));
+
+  const rawMaxPrice = maxPrice !== undefined ? Number(maxPrice) : undefined;
+  const currentMaxPrice =
+    rawMaxPrice !== undefined && Number.isFinite(rawMaxPrice) && rawMaxPrice < sliderMaxPrice
+      ? Math.max(0, rawMaxPrice)
+      : undefined;
+
+  const results = baseResultsForPriceRange.filter((item) =>
+    matchesMaxPrice(item.service.priceFrom, currentMaxPrice),
   );
 
   // Sort: price-asc or default recommended/top-rated (rating desc)
@@ -102,7 +117,7 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
   if (date) clearBase.set('date', date);
   const clearHref = `/results${clearBase.size ? `?${clearBase}` : ''}`;
 
-  const isActive = hasActiveFilters(price, rating, avail, sort);
+  const isActive = !!category || hasActiveFilters(currentMaxPrice, rating, avail, sort);
 
   return (
     <PageShell>
@@ -122,7 +137,8 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
                   location={location}
                   date={date}
                   sort={sort}
-                  price={price}
+                  sliderMaxPrice={sliderMaxPrice}
+                  currentMaxPrice={currentMaxPrice}
                   rating={rating}
                   avail={avail}
                   isActive={isActive}

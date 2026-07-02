@@ -41,12 +41,13 @@ export function EmptyResults({ category, location, hasActiveFilters, clearHref }
             see more providers.
           </p>
         </div>
-        <a
+        <Link
           href={clearHref}
+          scroll={false}
           className="inline-flex items-center rounded-pill bg-yellow-400 px-6 py-3 text-sm font-semibold text-ink-900 shadow-sm transition-colors hover:bg-yellow-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2"
         >
           Clear filters
-        </a>
+        </Link>
       </div>
     );
   }
