@@ -115,24 +115,30 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
               location={location}
               date={date}
             />
-            <ResultsFilters
-              category={category}
-              location={location}
-              date={date}
-              sort={sort}
-              price={price}
-              rating={rating}
-              avail={avail}
-              isActive={isActive}
-              clearHref={clearHref}
-            />
-            <ResultsList
-              results={results}
-              category={category}
-              location={location}
-              hasActiveFilters={isActive}
-              clearHref={clearHref}
-            />
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+              <aside className="w-full lg:w-64 lg:shrink-0">
+                <ResultsFilters
+                  category={category}
+                  location={location}
+                  date={date}
+                  sort={sort}
+                  price={price}
+                  rating={rating}
+                  avail={avail}
+                  isActive={isActive}
+                  clearHref={clearHref}
+                />
+              </aside>
+              <div className="min-w-0 flex-1">
+                <ResultsList
+                  results={results}
+                  category={category}
+                  location={location}
+                  hasActiveFilters={isActive}
+                  clearHref={clearHref}
+                />
+              </div>
+            </div>
           </div>
         </Container>
       </div>

@@ -12,7 +12,7 @@ const SERVICE_CATEGORIES = [
 ] as const;
 
 const SELECT_CLASS =
-  'rounded-md border border-border-soft bg-white px-3 py-2 text-sm text-ink-800 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/35';
+  'w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm text-ink-800 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/35';
 
 interface ResultsFiltersProps {
   category?: string;
@@ -42,8 +42,8 @@ function FilterSelect({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-1.5">
-      <label htmlFor={id} className="shrink-0 text-sm text-ink-500">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-xs font-medium text-ink-500">
         {label}
       </label>
       <select
@@ -74,8 +74,21 @@ export function ResultsFilters({
   const submit = () => formRef.current?.requestSubmit();
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-border-soft bg-white px-4 py-3 shadow-sm">
-      <form ref={formRef} method="GET" action="/results" className="contents">
+    <div className="rounded-xl border border-border-soft bg-white p-5 shadow-sm">
+      {/* Sidebar header */}
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-ink-900">Filters</h2>
+        {isActive && (
+          <a
+            href={clearHref}
+            className="text-xs font-medium text-yellow-700 hover:text-yellow-800 focus-visible:outline-none focus-visible:underline"
+          >
+            Clear all
+          </a>
+        )}
+      </div>
+
+      <form ref={formRef} method="GET" action="/results" className="flex flex-col gap-5">
         {location && <input type="hidden" name="location" value={location} />}
         {date && <input type="hidden" name="date" value={date} />}
 
@@ -134,7 +147,7 @@ export function ResultsFilters({
         <FilterSelect
           id="sort"
           name="sort"
-          label="Sort"
+          label="Sort by"
           defaultValue={sort ?? 'recommended'}
           onChange={submit}
         >
@@ -143,15 +156,6 @@ export function ResultsFilters({
           <option value="price-asc">Price: low to high</option>
         </FilterSelect>
       </form>
-
-      {isActive && (
-        <a
-          href={clearHref}
-          className="ml-auto shrink-0 text-sm font-medium text-yellow-700 hover:text-yellow-800 focus-visible:outline-none focus-visible:underline"
-        >
-          Clear filters
-        </a>
-      )}
     </div>
   );
 }
