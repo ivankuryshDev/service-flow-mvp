@@ -1,5 +1,10 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BookingsHeader } from '@/components/business/BookingsHeader';
+
+export const metadata: Metadata = {
+  title: 'Bookings · ServiceFlow',
+};
 import { BookingsStats } from '@/components/business/BookingsStats';
 import { BookingsFilters } from '@/components/business/BookingsFilters';
 import { BookingsTable } from '@/components/business/BookingsTable';

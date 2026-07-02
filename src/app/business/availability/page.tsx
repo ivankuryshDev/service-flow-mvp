@@ -1,5 +1,10 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { mockAvailability } from '@/data/mockAvailability';
+
+export const metadata: Metadata = {
+  title: 'Availability · ServiceFlow',
+};
 import { mockProviders } from '@/data/mockProviders';
 import { mockServices } from '@/data/mockServices';
 import { formatDateLabel } from '@/lib/dates';
@@ -54,8 +59,9 @@ export default async function BusinessAvailabilityPage(props: { searchParams: Pa
 
   const grouped = new Map<string, EnrichedSlot[]>();
   for (const item of filtered) {
-    if (!grouped.has(item.slot.date)) grouped.set(item.slot.date, []);
-    grouped.get(item.slot.date)!.push(item);
+    const bucket = grouped.get(item.slot.date) ?? [];
+    grouped.set(item.slot.date, bucket);
+    bucket.push(item);
   }
 
   const dayGroups: DayGroup[] = Array.from(grouped.entries()).map(([date, slots]) => ({
