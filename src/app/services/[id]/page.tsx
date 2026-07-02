@@ -5,7 +5,7 @@ import { Container } from '@/components/layout/Container';
 import { ServiceHero } from '@/components/customer/ServiceHero';
 import { ServiceIncludes } from '@/components/customer/ServiceIncludes';
 import { BookingSection } from '@/components/customer/BookingSection';
-import type { SlotGroup } from '@/components/customer/BookingSection';
+import type { SlotGroup, SlotItem } from '@/components/customer/BookingSection';
 import { mockServices } from '@/data/mockServices';
 import { mockProviders } from '@/data/mockProviders';
 import { mockAvailability } from '@/data/mockAvailability';
@@ -58,22 +58,30 @@ export default async function ServiceDetailsPage(props: {
     return d.toISOString().slice(0, 10);
   })();
 
-  const slotsByDate = new Map<string, { id: string; timeLabel: string; endTimeLabel: string }[]>();
+  const amSlotsByDate = new Map<string, SlotItem[]>();
+  const pmSlotsByDate = new Map<string, SlotItem[]>();
+
   for (const slot of availableSlots) {
-    const bucket = slotsByDate.get(slot.date) ?? [];
-    slotsByDate.set(slot.date, bucket);
-    bucket.push({
+    const hour = parseInt(slot.startTime.split(':')[0], 10);
+    const item: SlotItem = {
       id: slot.id,
       timeLabel: formatTime(slot.startTime),
       endTimeLabel: formatTime(slot.endTime),
-    });
+    };
+    const map = hour < 12 ? amSlotsByDate : pmSlotsByDate;
+    const bucket = map.get(slot.date) ?? [];
+    map.set(slot.date, bucket);
+    bucket.push(item);
   }
 
-  const slotGroups: SlotGroup[] = Array.from(slotsByDate.entries()).map(([date, slots]) => ({
+  const allDates = [...new Set(availableSlots.map((s) => s.date))];
+
+  const slotGroups: SlotGroup[] = allDates.map((date) => ({
     date,
     dateLabel:
       date === today ? 'Today' : date === tomorrow ? 'Tomorrow' : formatDateLabel(date),
-    slots,
+    amSlots: amSlotsByDate.get(date) ?? [],
+    pmSlots: pmSlotsByDate.get(date) ?? [],
   }));
 
   return (

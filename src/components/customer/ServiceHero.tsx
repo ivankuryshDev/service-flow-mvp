@@ -14,7 +14,7 @@ export function ServiceHero({ service, provider }: ServiceHeroProps) {
       {/* Back link */}
       <div className="border-b border-border-soft px-6 py-3">
         <Link
-          href="/results"
+          href={`/results?category=${encodeURIComponent(service.category)}`}
           className="inline-flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 rounded-sm"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
