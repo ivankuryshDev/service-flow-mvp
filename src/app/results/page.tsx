@@ -12,7 +12,7 @@ import type { ResultItem } from '@/components/customer/ResultsList';
 import { mockServices } from '@/data/mockServices';
 import { mockProviders } from '@/data/mockProviders';
 import { mockAvailability } from '@/data/mockAvailability';
-import { formatSlotLabel } from '@/lib/dates';
+import { formatSlotLabel, formatTime } from '@/lib/dates';
 import { matchesMaxPrice, matchesRating, matchesAvail, hasActiveFilters } from '@/lib/filters';
 
 type PageSearchParams = Promise<{
@@ -23,10 +23,17 @@ type PageSearchParams = Promise<{
   maxPrice?: string;
   rating?: string;
   avail?: string;
+  // Read-only alias for `avail`; some incoming/shared URLs use this spelling.
+  // `avail` always wins when both are present.
+  availability?: string;
 }>;
 
 export default async function ResultsPage(props: { searchParams: PageSearchParams }) {
-  const { category, location, date, sort, maxPrice, rating, avail } = await props.searchParams;
+  const { category, location, date, sort, maxPrice, rating, avail, availability } =
+    await props.searchParams;
+  const effectiveAvail = avail ?? availability;
+  // Read-only alias for the canonical `week` value; the UI never writes this.
+  const normalizedAvail = effectiveAvail === 'this-week' ? 'week' : effectiveAvail;
   const today = new Date().toISOString().slice(0, 10);
 
   // Compute week end for "this week" availability filter
@@ -58,25 +65,35 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
     for (const service of matchedServices) {
       if (!provider.serviceIds.includes(service.id)) continue;
 
+      const providerServiceSlots = mockAvailability.filter(
+        (slot) => slot.providerId === provider.id && slot.serviceId === service.id,
+      );
+
       const nextSlot =
-        mockAvailability
-          .filter(
-            (slot) =>
-              slot.providerId === provider.id &&
-              slot.serviceId === service.id &&
-              slot.status === 'available' &&
-              slot.date >= fromDate,
-          )
+        providerServiceSlots
+          .filter((slot) => slot.status === 'available' && slot.date >= fromDate)
           .sort(
             (a, b) =>
               a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime),
           )[0] ?? null;
+
+      // Display-only: today's available slots for this provider/service pair.
+      // Never used for filtering, sorting, or URL params.
+      const todaysAvailableSlots = providerServiceSlots
+        .filter((slot) => slot.status === 'available' && slot.date === today)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+      const openTodayCount = todaysAvailableSlots.length;
+      const openTodaySlotTimes = todaysAvailableSlots
+        .slice(0, 2)
+        .map((slot) => formatTime(slot.startTime));
 
       allResults.push({
         provider,
         service,
         nextSlot,
         nextSlotLabel: nextSlot ? formatSlotLabel(nextSlot, today) : null,
+        openTodayCount,
+        openTodaySlotTimes,
       });
     }
   }
@@ -86,7 +103,7 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
   const baseResultsForPriceRange = allResults.filter(
     (item) =>
       matchesRating(item.provider.rating, rating) &&
-      matchesAvail(item.nextSlot?.date ?? null, avail, today, weekEnd),
+      matchesAvail(item.nextSlot?.date ?? null, normalizedAvail, today, weekEnd),
   );
 
   const sliderMaxPrice =
@@ -117,7 +134,7 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
   if (date) clearBase.set('date', date);
   const clearHref = `/results${clearBase.size ? `?${clearBase}` : ''}`;
 
-  const isActive = !!category || hasActiveFilters(currentMaxPrice, rating, avail, sort);
+  const isActive = !!category || hasActiveFilters(currentMaxPrice, rating, normalizedAvail, sort);
 
   return (
     <PageShell>
@@ -140,7 +157,7 @@ export default async function ResultsPage(props: { searchParams: PageSearchParam
                   sliderMaxPrice={sliderMaxPrice}
                   currentMaxPrice={currentMaxPrice}
                   rating={rating}
-                  avail={avail}
+                  avail={normalizedAvail}
                   isActive={isActive}
                   clearHref={clearHref}
                 />

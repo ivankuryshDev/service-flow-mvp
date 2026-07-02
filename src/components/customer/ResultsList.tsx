@@ -8,6 +8,8 @@ export interface ResultItem {
   provider: Provider;
   nextSlot: AvailabilitySlot | null;
   nextSlotLabel: string | null;
+  openTodayCount: number;
+  openTodaySlotTimes: string[];
 }
 
 interface ResultsListProps {
@@ -36,13 +38,15 @@ export function ResultsList({
     );
   }
   return (
-    <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
+    <ul className="flex flex-col gap-4" role="list">
       {results.map((item, i) => (
         <li key={`${item.provider.id}-${item.service.id}`}>
           <ResultCard
             service={item.service}
             provider={item.provider}
             nextSlotLabel={item.nextSlotLabel}
+            openTodayCount={item.openTodayCount}
+            openTodaySlotTimes={item.openTodaySlotTimes}
             isRecommended={i === 0}
           />
         </li>
