@@ -12,9 +12,11 @@ export interface DayGroup {
 
 interface AvailabilityDayGroupProps {
   group: DayGroup;
+  onBlock?: (id: string) => void;
+  onRemove?: (id: string) => void;
 }
 
-export function AvailabilityDayGroup({ group }: AvailabilityDayGroupProps) {
+export function AvailabilityDayGroup({ group, onBlock, onRemove }: AvailabilityDayGroupProps) {
   const headingColor = group.isPast ? 'text-ink-400' : 'text-ink-800';
 
   return (
@@ -34,7 +36,12 @@ export function AvailabilityDayGroup({ group }: AvailabilityDayGroupProps) {
       </div>
       <Card padding="none" className="divide-y divide-border-soft overflow-hidden">
         {group.slots.map((item) => (
-          <AvailabilitySlotCard key={item.slot.id} item={item} />
+          <AvailabilitySlotCard
+            key={item.slot.id}
+            item={item}
+            onBlock={onBlock}
+            onRemove={onRemove}
+          />
         ))}
       </Card>
     </div>

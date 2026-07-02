@@ -1,10 +1,9 @@
-import Link from 'next/link';
-
 interface AvailabilityEmptyStateProps {
   activeStatus: string;
+  onClearFilter?: () => void;
 }
 
-export function AvailabilityEmptyState({ activeStatus }: AvailabilityEmptyStateProps) {
+export function AvailabilityEmptyState({ activeStatus, onClearFilter }: AvailabilityEmptyStateProps) {
   const label = activeStatus === 'all' ? '' : `${activeStatus} `;
 
   return (
@@ -35,13 +34,14 @@ export function AvailabilityEmptyState({ activeStatus }: AvailabilityEmptyStateP
             : 'Try a different filter to see other slots.'}
         </p>
       </div>
-      {activeStatus !== 'all' && (
-        <Link
-          href="/business/availability"
+      {activeStatus !== 'all' && onClearFilter && (
+        <button
+          type="button"
+          onClick={onClearFilter}
           className="text-sm font-medium text-yellow-600 hover:text-yellow-700 focus-visible:outline-none focus-visible:underline"
         >
           Clear filter
-        </Link>
+        </button>
       )}
     </div>
   );
