@@ -1,36 +1,146 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ServiceFlow
 
-## Getting Started
+A frontend-only portfolio MVP for a local service booking and availability platform.
 
-First, run the development server:
+ServiceFlow lets customers search for local services, compare providers, and book available time slots. Business owners can manage bookings, update statuses, and control their availability — all in a polished, commercial-quality UI.
+
+> **Portfolio note:** This is a frontend demo with no backend, database, authentication, or payment processing. All data is static mock data. The app is designed to showcase real-world frontend engineering: routing, reusable components, form validation, booking flows, business dashboards, responsive design, and accessibility.
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| Forms | React Hook Form + Zod |
+| Package manager | pnpm |
+| Fonts | Bricolage Grotesque, Plus Jakarta Sans, DM Mono |
+| Deployment | Vercel |
+
+---
+
+## Local setup
+
+**Prerequisites:** Node.js 18+ and pnpm installed.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Start the development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Description |
+|---|---|
+| `pnpm dev` | Start local development server |
+| `pnpm build` | Build for production |
+| `pnpm start` | Run the production build locally |
+| `pnpm lint` | Run ESLint |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Customer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Route | Description |
+|---|---|
+| `/` | Home — hero section, service category search, date and location inputs |
+| `/results` | Search results — filtered provider cards based on query params |
+| `/services/[id]` | Service details and booking — time slot selection, booking form |
+| `/booking/confirmation` | Booking confirmation — reference number and booking summary |
 
-## Deploy on Vercel
+### Business
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Route | Description |
+|---|---|
+| `/business` | Dashboard — stats overview, today's bookings, recent activity |
+| `/business/bookings` | Bookings management — search, filter, status actions, detail panel |
+| `/business/availability` | Availability management — weekly view, add/remove/block slots |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Data and state
+
+- All demo data lives in `src/data/` as static TypeScript files (services, providers, availability slots, bookings).
+- The customer booking flow passes selected filters and booking state via URL query parameters between pages.
+- Business pages read directly from the static mock data.
+- There is no localStorage, no backend, no database, no authentication, and no payment processing in this MVP.
+
+---
+
+## Key demo flows
+
+### Customer: book a service
+
+1. Open `/` and select a service category, location, and date.
+2. Click **Find services** to navigate to `/results`.
+3. Click **View availability** on a provider card.
+4. Select an available time slot on the service details page.
+5. Fill in your name and contact details, then click **Confirm booking**.
+6. The confirmation page shows your booking reference and a summary.
+
+### Business: manage bookings
+
+1. Open `/business` to see the dashboard overview and today's stats.
+2. Navigate to `/business/bookings` to see all bookings.
+3. Use search, status, and date filters to find a booking.
+4. Click a row to open the detail panel.
+5. Confirm, cancel, or mark a booking as completed using the action buttons.
+
+### Business: manage availability
+
+1. Open `/business/availability` to see the current week.
+2. Click **Add time slot** to add a new available slot.
+3. Use the slot actions to block or remove existing slots.
+
+---
+
+## Deployment
+
+No environment variables are required. The app is fully static-data frontend.
+
+**Deploy to Vercel in one step:**
+
+1. Push the repository to GitHub.
+2. Import the repository in [Vercel](https://vercel.com/new).
+3. Vercel auto-detects Next.js — no additional configuration needed.
+4. Click **Deploy**.
+
+---
+
+## Project structure
+
+```
+src/
+  app/                  # Next.js App Router pages
+  components/
+    ui/                 # Reusable base components (Button, Card, Badge, etc.)
+    layout/             # Header, sidebar, page shell
+    customer/           # Customer-facing feature components
+    business/           # Business dashboard feature components
+  data/                 # Static mock data (services, providers, bookings, slots)
+  lib/                  # Utility functions (dates, formatters, filters, cn)
+  types/                # Shared TypeScript types
+```
+
+---
+
+## Future improvements
+
+- Real backend API (e.g. Next.js route handlers + PostgreSQL)
+- User authentication (business and customer accounts)
+- Calendar integration for availability sync
+- Email or SMS booking confirmations
+- Payment processing
+- Provider onboarding flow
+- Search with real geolocation
+- Admin analytics dashboard
