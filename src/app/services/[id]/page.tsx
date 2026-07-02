@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PageShell } from '@/components/layout/PageShell';
 import { Container } from '@/components/layout/Container';
@@ -12,6 +13,16 @@ import { formatTime, formatDateLabel } from '@/lib/dates';
 
 type PageParams = Promise<{ id: string }>;
 type PageSearchParams = Promise<{ providerId?: string }>;
+
+export async function generateMetadata(props: {
+  params: PageParams;
+}): Promise<Metadata> {
+  const { id } = await props.params;
+  const service = mockServices.find((s) => s.id === id);
+  return {
+    title: service ? `${service.name} · ServiceFlow` : 'Service · ServiceFlow',
+  };
+}
 
 export default async function ServiceDetailsPage(props: {
   params: PageParams;
@@ -49,8 +60,9 @@ export default async function ServiceDetailsPage(props: {
 
   const slotsByDate = new Map<string, { id: string; timeLabel: string; endTimeLabel: string }[]>();
   for (const slot of availableSlots) {
-    if (!slotsByDate.has(slot.date)) slotsByDate.set(slot.date, []);
-    slotsByDate.get(slot.date)!.push({
+    const bucket = slotsByDate.get(slot.date) ?? [];
+    slotsByDate.set(slot.date, bucket);
+    bucket.push({
       id: slot.id,
       timeLabel: formatTime(slot.startTime),
       endTimeLabel: formatTime(slot.endTime),

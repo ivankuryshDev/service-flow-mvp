@@ -1,5 +1,10 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DashboardHeader } from '@/components/business/DashboardHeader';
+
+export const metadata: Metadata = {
+  title: 'Dashboard · ServiceFlow',
+};
 import { StatsGrid } from '@/components/business/StatsGrid';
 import { UpcomingBookings } from '@/components/business/UpcomingBookings';
 import type { BookingItem } from '@/components/business/UpcomingBookings';

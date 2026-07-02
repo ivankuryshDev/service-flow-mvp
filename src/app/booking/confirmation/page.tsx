@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Booking Confirmed · ServiceFlow',
+};
 import { notFound } from 'next/navigation';
 import { PageShell } from '@/components/layout/PageShell';
 import { Container } from '@/components/layout/Container';

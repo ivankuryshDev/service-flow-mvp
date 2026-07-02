@@ -115,6 +115,7 @@ export function SearchPanel() {
                 key={d.iso}
                 type="button"
                 onClick={() => selectDate(d.iso)}
+                aria-pressed={datePicker.selectedDate === d.iso}
                 className={cn(
                   'flex min-w-[3.5rem] flex-col items-center rounded-lg border px-3 py-2 transition-colors duration-150',
                   datePicker.selectedDate === d.iso

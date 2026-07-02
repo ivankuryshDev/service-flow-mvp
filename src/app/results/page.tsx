@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import { PageShell } from '@/components/layout/PageShell';
+
+export const metadata: Metadata = {
+  title: 'Search Results · ServiceFlow',
+};
 import { Container } from '@/components/layout/Container';
 import { ResultsHeader } from '@/components/customer/ResultsHeader';
 import { ResultsFilters } from '@/components/customer/ResultsFilters';
