@@ -27,7 +27,7 @@ interface ResultsFiltersProps {
   clearHref: string;
 }
 
-function buildHref(params: {
+export function buildHref(params: {
   location?: string;
   date?: string;
   category?: string;
@@ -289,27 +289,60 @@ export function ResultsFilters({
           </div>
         </FilterSection>
 
-        <FilterSection title="Availability">
+        <FilterSection title="Availability" last>
           <div className="flex flex-wrap gap-2">
             <PillOption name="avail" value="any"   label="Any time"  current={avail ?? 'any'} onChange={() => navigate({ avail: 'any' })} />
             <PillOption name="avail" value="today" label="Today"     current={avail ?? 'any'} onChange={() => navigate({ avail: 'today' })} />
             <PillOption name="avail" value="week"  label="This week" current={avail ?? 'any'} onChange={() => navigate({ avail: 'week' })} />
           </div>
         </FilterSection>
-
-        <FilterSection title="Sort by" last>
-          <select
-            name="sort"
-            value={sort ?? 'recommended'}
-            onChange={(e) => navigate({ sort: e.target.value })}
-            className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm text-ink-800 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/35"
-          >
-            <option value="recommended">Recommended</option>
-            <option value="top-rated">Top rated</option>
-            <option value="price-asc">Price: low to high</option>
-          </select>
-        </FilterSection>
       </div>
     </div>
+  );
+}
+
+export function SortControl({
+  category,
+  location,
+  date,
+  currentMaxPrice,
+  rating,
+  avail,
+  sort,
+}: {
+  category?: string;
+  location?: string;
+  date?: string;
+  currentMaxPrice?: number;
+  rating?: string;
+  avail?: string;
+  sort?: string;
+}) {
+  const router = useRouter();
+
+  return (
+    <select
+      aria-label="Sort results"
+      value={sort ?? 'recommended'}
+      onChange={(e) =>
+        router.replace(
+          buildHref({
+            location,
+            date,
+            category,
+            maxPrice: currentMaxPrice,
+            rating,
+            avail,
+            sort: e.target.value,
+          }),
+          { scroll: false },
+        )
+      }
+      className="rounded-md border border-border-soft bg-white px-3 py-2 text-sm text-ink-800 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/35"
+    >
+      <option value="recommended">Recommended</option>
+      <option value="top-rated">Top rated</option>
+      <option value="price-asc">Price: low to high</option>
+    </select>
   );
 }
