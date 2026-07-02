@@ -78,7 +78,7 @@ export function SearchPanel() {
         {/* Location input */}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="sf-location" className="text-sm font-medium text-ink-800">
-            Where?
+            Location
           </label>
           <div className="relative">
             <svg
@@ -135,7 +135,7 @@ export function SearchPanel() {
       {/* Row 3: Hint + Submit */}
       <div className="mt-5 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <p className="text-sm text-ink-400">
-          Free to change up to 24 hours before · No booking fees
+          Free to change up to 24 hours before. No booking fees.
         </p>
         <button
           type="submit"

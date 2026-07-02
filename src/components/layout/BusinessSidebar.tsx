@@ -65,7 +65,7 @@ export function BusinessSidebar() {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-150',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500',
                 isActive
                   ? 'bg-cream-100 text-ink-900 font-semibold'
                   : 'text-ink-500 hover:bg-cream-50 hover:text-ink-800',
@@ -87,7 +87,7 @@ export function BusinessSidebar() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Customer view
+          View as customer
         </Link>
       </div>
     </aside>

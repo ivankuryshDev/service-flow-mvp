@@ -53,7 +53,7 @@ export default async function BusinessAvailabilityPage(props: { searchParams: Pa
   );
 
   return (
-    <div className="flex flex-col gap-6 p-6 sm:p-8 lg:p-10">
+    <div className="flex flex-col gap-8 p-6 sm:p-8 lg:p-10">
       <AvailabilityManager
         initialSlots={initialSlots}
         initialStatus={initialStatus}
