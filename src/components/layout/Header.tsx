@@ -114,7 +114,7 @@ export function Header() {
               <Link
                 href="/business"
                 onClick={() => setMobileOpen(false)}
-                className="mt-1 rounded-md px-3 py-2 text-sm text-ink-500 hover:bg-cream-50 hover:text-ink-900 transition-colors duration-150"
+                className="mt-1 rounded-md px-3 py-2 text-sm text-ink-500 hover:bg-cream-50 hover:text-ink-900 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500"
               >
                 Business area
               </Link>

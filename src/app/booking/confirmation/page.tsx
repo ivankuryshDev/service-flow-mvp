@@ -1,9 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-
-export const metadata: Metadata = {
-  title: 'Booking Confirmed · ServiceFlow',
-};
 import { notFound } from 'next/navigation';
 import { PageShell } from '@/components/layout/PageShell';
 import { Container } from '@/components/layout/Container';
@@ -14,6 +10,10 @@ import { mockServices } from '@/data/mockServices';
 import { mockProviders } from '@/data/mockProviders';
 import { mockAvailability } from '@/data/mockAvailability';
 import { formatDateLabel, formatTime } from '@/lib/dates';
+
+export const metadata: Metadata = {
+  title: 'Booking Confirmed · ServiceFlow',
+};
 
 type PageSearchParams = Promise<{
   serviceId?: string;
@@ -121,7 +121,7 @@ export default async function BookingConfirmationPage(props: { searchParams: Pag
                 aria-disabled="true"
                 className="inline-flex w-full items-center justify-center rounded-pill border border-border bg-white px-6 py-3 text-sm font-medium text-ink-400 opacity-60 sm:w-auto"
               >
-                Add to calendar · Coming soon
+                Add to calendar (coming soon)
               </button>
             </div>
           </div>
