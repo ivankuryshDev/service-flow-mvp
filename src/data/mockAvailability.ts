@@ -1,5 +1,9 @@
 import type { AvailabilitySlot } from '@/types/availability';
 
+function daysFromToday(n: number): string {
+  return new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+}
+
 export const mockAvailability: AvailabilitySlot[] = [
   // Dublin Laptop Care (prv-1) — Laptop repair (svc-1)
   { id: 'slot-001', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-29', startTime: '09:00', endTime: '10:30', status: 'available' },
@@ -53,4 +57,45 @@ export const mockAvailability: AvailabilitySlot[] = [
   { id: 'slot-033', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-24', startTime: '10:00', endTime: '11:30', status: 'booked' },
   { id: 'slot-034', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-25', startTime: '14:00', endTime: '15:30', status: 'booked' },
   { id: 'slot-035', providerId: 'prv-1', serviceId: 'svc-1', date: '2026-06-28', startTime: '09:00', endTime: '10:30', status: 'booked' },
+
+  // ── Rolling demo slots (dates relative to today) ─────────────────────────
+
+  // Dublin Laptop Care (prv-1) — today + this week
+  { id: 'slot-036', providerId: 'prv-1', serviceId: 'svc-1', date: daysFromToday(0), startTime: '09:00', endTime: '10:30', status: 'available' },
+  { id: 'slot-037', providerId: 'prv-1', serviceId: 'svc-1', date: daysFromToday(5), startTime: '14:00', endTime: '15:30', status: 'available' },
+
+  // PhoneClinic Rathmines (prv-3) — today + this week
+  { id: 'slot-038', providerId: 'prv-3', serviceId: 'svc-2', date: daysFromToday(0), startTime: '14:00', endTime: '14:45', status: 'available' },
+  { id: 'slot-039', providerId: 'prv-3', serviceId: 'svc-2', date: daysFromToday(3), startTime: '10:00', endTime: '10:45', status: 'available' },
+
+  // Smile Dental Studio (prv-4) — this week (not today)
+  { id: 'slot-040', providerId: 'prv-4', serviceId: 'svc-3', date: daysFromToday(1), startTime: '09:00', endTime: '10:00', status: 'available' },
+
+  // Business Edge Advisors (prv-6) — today + this week
+  { id: 'slot-041', providerId: 'prv-6', serviceId: 'svc-5', date: daysFromToday(0), startTime: '11:00', endTime: '12:00', status: 'available' },
+  { id: 'slot-042', providerId: 'prv-6', serviceId: 'svc-5', date: daysFromToday(7), startTime: '14:00', endTime: '15:00', status: 'available' },
+
+  // Studio Noir (prv-7) — this week (not today)
+  { id: 'slot-043', providerId: 'prv-7', serviceId: 'svc-6', date: daysFromToday(2), startTime: '13:00', endTime: '14:15', status: 'available' },
+  { id: 'slot-044', providerId: 'prv-7', serviceId: 'svc-6', date: daysFromToday(6), startTime: '10:00', endTime: '11:15', status: 'available' },
+
+  // The Cut Room (prv-8) — this week (end of week)
+  { id: 'slot-045', providerId: 'prv-8', serviceId: 'svc-6', date: daysFromToday(5), startTime: '15:00', endTime: '16:15', status: 'available' },
+
+  // FixIt Fast Dublin (prv-2) — next week only (outside this-week range)
+  { id: 'slot-046', providerId: 'prv-2', serviceId: 'svc-1', date: daysFromToday(8), startTime: '10:00', endTime: '11:30', status: 'available' },
+  { id: 'slot-047', providerId: 'prv-2', serviceId: 'svc-2', date: daysFromToday(8), startTime: '14:00', endTime: '14:45', status: 'available' },
+
+  // SparklePro Cleaning (prv-5) — next week only
+  { id: 'slot-048', providerId: 'prv-5', serviceId: 'svc-4', date: daysFromToday(10), startTime: '09:00', endTime: '12:00', status: 'available' },
+
+  // QuickFix Tech (prv-9, new) — next week only
+  { id: 'slot-049', providerId: 'prv-9', serviceId: 'svc-1', date: daysFromToday(8), startTime: '09:00', endTime: '10:30', status: 'available' },
+  { id: 'slot-050', providerId: 'prv-9', serviceId: 'svc-2', date: daysFromToday(9), startTime: '11:00', endTime: '11:45', status: 'available' },
+
+  // EcoClean Dublin (prv-10, new) — next week only
+  { id: 'slot-051', providerId: 'prv-10', serviceId: 'svc-4', date: daysFromToday(10), startTime: '09:00', endTime: '12:00', status: 'available' },
+
+  // Pembroke Dental (prv-11, new) — next week only
+  { id: 'slot-052', providerId: 'prv-11', serviceId: 'svc-3', date: daysFromToday(9), startTime: '09:00', endTime: '10:00', status: 'available' },
 ];
